@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - TECNOBOTS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1f4e6e 0%, #2c7da0 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .register-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 450px;
+        }
+        h1 {
+            color: #1f4e6e;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        label {
+            font-weight: 600;
+            margin-top: 10px;
+            display: block;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            border: 2px solid #ddd;
+            border-radius: 30px;
+            font-size: 1rem;
+        }
+        button {
+            background: #1f4e6e;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 30px;
+            width: 100%;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .error {
+            color: red;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .login-link a {
+            color: #2c7da0;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <h1>Crear cuenta</h1>
+        <form method="POST">
+            <label>Nombre</label>
+            <input type="text" name="nombre" required>
+            
+            <label>Apellido</label>
+            <input type="text" name="apellido" required>
+            
+            <label>Teléfono</label>
+            <input type="text" name="telefono" required>
+            
+            <label>Correo electrónico</label>
+            <input type="email" name="email" required>
+            
+            <label>Contraseña</label>
+            <input type="password" name="password" required>
+            
+            <button type="submit">Registrarse</button>
+        </form>
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+        <div class="login-link">
+            ¿Ya tienes cuenta? <a href="{{ url_for('login') }}">Inicia sesión</a>
+        </div>
+    </div>
+</body>
+</html>

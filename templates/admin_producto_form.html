@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if producto %}Editar{% else %}Nuevo{% endif %} Producto - Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f0f8ff; padding: 40px; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        h1 { color: #1f4e6e; margin-bottom: 20px; text-align: center; }
+        label { font-weight: 600; margin-top: 15px; display: block; }
+        input, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 2px solid #ddd; border-radius: 10px; font-family: inherit; }
+        button { background: #1f4e6e; color: white; border: none; padding: 12px; border-radius: 30px; width: 100%; font-size: 1rem; cursor: pointer; margin-top: 20px; }
+        .back { display: block; text-align: center; margin-top: 15px; color: #2c7da0; }
+        .imagenes-preview { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        .imagen-item { position: relative; width: 80px; height: 80px; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; }
+        .imagen-item img { width: 100%; height: 100%; object-fit: cover; }
+        .imagen-item .delete { position: absolute; top: 2px; right: 2px; background: red; color: white; border-radius: 50%; width: 20px; height: 20px; text-align: center; font-size: 12px; text-decoration: none; }
+        .help-text { font-size: 0.8rem; color: #666; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{% if producto %}Editar{% else %}Nuevo{% endif %} Producto</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <label>Nombre del producto</label>
+            <input type="text" name="nombre" value="{{ producto.nombre if producto else '' }}" required>
+            
+            <label>Precio de venta (Bs/USD)</label>
+            <input type="number" step="0.01" name="precio_venta" value="{{ producto.precio_venta if producto else '' }}" required>
+            
+            <label>Cantidad (stock)</label>
+            <input type="number" name="cantidad" value="{{ producto.cantidad if producto else '' }}" required>
+            
+            <label>Precio de compra</label>
+            <input type="number" step="0.01" name="precio_compra" value="{{ producto.precio_compra if producto else '' }}" required>
+            
+            <label>Porcentaje de envío (%)</label>
+            <input type="number" step="0.01" name="porcentaje_envio" value="{{ producto.porcentaje_envio if producto else '' }}" required>
+            
+            <label>Porcentaje de ganancia (%)</label>
+            <input type="number" step="0.01" name="porcentaje_ganancia" value="{{ producto.porcentaje_ganancia if producto else '' }}" required>
+            
+            <label>Imágenes del producto (puedes seleccionar varias)</label>
+            <input type="file" name="imagenes" accept="image/*" multiple>
+            <div class="help-text">Selecciona una o más imágenes. Mantén presionada la tecla Ctrl (o Cmd) para seleccionar varias.</div>
+            
+            {% if imagenes %}
+            <label>Imágenes actuales</label>
+            <div class="imagenes-preview">
+                {% for img in imagenes %}
+                <div class="imagen-item">
+                    <img src="{{ img.imagen_url }}" alt="Imagen">
+                    <a href="{{ url_for('admin_imagen_eliminar', id_imagen=img.id) }}" class="delete" onclick="return confirm('¿Eliminar esta imagen?')">✖</a>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <button type="submit">{% if producto %}Actualizar{% else %}Crear{% endif %} producto</button>
+        </form>
+        <a href="{{ url_for('admin_dashboard') }}" class="back">← Volver al panel</a>
+    </div>
+</body>
+</html>

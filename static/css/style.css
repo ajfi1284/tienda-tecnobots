@@ -1,0 +1,271 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    background: #ffffff;
+    color: #1a2a3a;
+}
+
+.container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+header {
+    background: #cce7ff;
+    padding: 15px 0;
+    border-bottom: 2px solid #2c7da0;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.logo img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.brand h1 {
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-menu {
+    position: relative;
+}
+
+#user-btn {
+    background: #2c7da0;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    font-family: inherit;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background: white;
+    min-width: 160px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    border-radius: 12px;
+    right: 0;
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: #1a2a3a;
+    padding: 10px 16px;
+    text-decoration: none;
+    display: block;
+    border-radius: 12px;
+}
+
+.dropdown-content a:hover {
+    background: #e6f0fa;
+}
+
+.user-menu:hover .dropdown-content {
+    display: block;
+}
+
+.cart-icon a {
+    font-size: 1.5rem;
+    text-decoration: none;
+    color: #1f4e6e;
+    position: relative;
+}
+
+#cart-count {
+    background: #e63946;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    position: absolute;
+    top: -8px;
+    right: -12px;
+}
+
+.search-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.search-bar {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    max-width: 500px;
+}
+
+.search-bar input {
+    flex: 1;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 40px;
+    font-size: 1rem;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.search-bar input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #2c7da0;
+}
+
+.search-bar button {
+    background: #2c7da0;
+    border: none;
+    border-radius: 40px;
+    padding: 0 25px;
+    cursor: pointer;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 30px;
+    margin: 40px 0;
+}
+
+.product-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
+    text-align: center;
+    padding: 20px;
+    border: 1px solid #e0f0f5;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 30px rgba(0,0,0,0.1);
+}
+
+.product-image img {
+    width: 100%;
+    max-height: 150px;
+    object-fit: contain;
+}
+
+.product-card h3 {
+    font-size: 1.1rem;
+    margin: 15px 0 5px;
+    color: #1f4e6e;
+}
+
+.price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2c7da0;
+    margin: 10px 0;
+}
+
+.stock {
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+
+.btn-add {
+    background: #1f4e6e;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.3s;
+    width: 100%;
+}
+
+.btn-add:hover {
+    background: #2c7da0;
+}
+
+footer {
+    background: #1f4e6e;
+    color: white;
+    padding: 20px 0;
+    margin-top: 60px;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.footer-contact {
+    text-align: right;
+    font-size: 0.9rem;
+}
+
+.footer-contact a {
+    color: #ffd700;
+    text-decoration: none;
+}
+
+.footer-contact a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .header-container {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .brand h1 {
+        font-size: 1.8rem;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 15px;
+    }
+    
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .footer-contact {
+        text-align: center;
+    }
+    
+    .search-bar {
+        max-width: 90%;
+    }
+}

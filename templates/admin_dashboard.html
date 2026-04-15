@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - TECNOBOTS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f0f8ff;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #1f4e6e;
+            margin-bottom: 20px;
+        }
+        .btn-add {
+            background: #2c7da0;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .logout {
+            background: #e63946;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            float: right;
+        }
+        .btn-resumen {
+            background: #1f4e6e;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+            margin-left: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #1f4e6e;
+            color: white;
+        }
+        .btn-edit {
+            background: #f0a500;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            text-decoration: none;
+        }
+        .btn-delete {
+            background: #e63946;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            text-decoration: none;
+        }
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Administración de Productos</h1>
+        <a href="{{ url_for('admin_producto_nuevo') }}" class="btn-add">➕ Agregar producto</a>
+        <a href="{{ url_for('admin_resumen') }}" class="btn-resumen">📊 Resumen Financiero</a>
+        <a href="{{ url_for('admin_logout') }}" class="logout">🚪 Cerrar sesión</a>
+        
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Imagen</th>
+                        <th>Nombre</th>
+                        <th>Precio Venta</th>
+                        <th>Stock</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in productos %}
+                    <tr>
+                        <td>{{ p.get('id', '') }}</td>
+                        <td>
+                            {% if p.get('imagen_url') %}
+                                <img src="{{ p.imagen_url }}" class="product-img" alt="{{ p.get('nombre', '') }}">
+                            {% else %}
+                                <span>Sin imagen</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ p.get('nombre', '') }}</td>
+                        <td>${{ "%.2f"|format(p.get('precio_venta', 0)) }}</td>
+                        <td>{{ p.get('cantidad', 0) }}</td>
+                        <td>
+                            <a href="{{ url_for('admin_producto_editar', id=p.get('id')) }}" class="btn-edit">✏️ Editar</a>
+                            <a href="{{ url_for('admin_producto_eliminar', id=p.get('id')) }}" class="btn-delete" onclick="return confirm('¿Eliminar este producto?')">🗑️ Eliminar</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

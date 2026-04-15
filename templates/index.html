@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Nuestros Productos</h2>
+<div class="products-grid" id="products-grid">
+    {% for producto in productos %}
+    <div class="product-card">
+        <div class="product-image">
+            {% set imagenes = producto.imagenes if producto.imagenes else [] %}
+            {% if imagenes %}
+                <img src="{{ imagenes[0].imagen_url }}" alt="{{ producto.nombre }}" class="product-main-img" data-id="{{ producto.id }}" data-index="0">
+                <div class="galeria-nav">
+                    <button class="prev-btn" data-id="{{ producto.id }}" data-index="0">◀</button>
+                    <span class="contador" data-id="{{ producto.id }}">1/{{ imagenes|length }}</span>
+                    <button class="next-btn" data-id="{{ producto.id }}" data-index="0">▶</button>
+                </div>
+            {% else %}
+                <img src="{{ url_for('static', filename='images/placeholder.png') }}" alt="Sin imagen">
+            {% endif %}
+        </div>
+        <h3>{{ producto.nombre }}</h3>
+        <p class="price">${{ "%.2f"|format(producto.precio_venta) }}</p>
+        <p class="stock">Stock: {{ producto.cantidad }}</p>
+        <form method="POST" action="{{ url_for('add_to_cart') }}">
+            <input type="hidden" name="product_id" value="{{ producto.nombre }}">
+            <input type="hidden" name="product_name" value="{{ producto.nombre }}">
+            <input type="hidden" name="product_price" value="{{ producto.precio_venta }}">
+            <button type="submit" class="btn-add">Agregar al carrito</button>
+        </form>
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .product-image { position: relative; text-align: center; }
+    .galeria-nav { display: flex; justify-content: center; gap: 10px; margin-top: 10px; align-items: center; }
+    .prev-btn, .next-btn { background: #1f4e6e; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 14px; }
+    .contador { font-size: 12px; color: #333; }
+    .product-main-img { width: 100%; height: 150px; object-fit: contain; }
+</style>
+
+<script>
+    // Esperar a que el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        // Obtener todas las imágenes de productos (desde el backend)
+        window.imagenesData = {};
+        {% for producto in productos %}
+            {% set imagenes = producto.imagenes if producto.imagenes else [] %}
+            window.imagenesData[{{ producto.id }}] = [
+                {% for img in imagenes %}
+                    "{{ img.imagen_url }}",
+                {% endfor %}
+            ];
+        {% endfor %}
+        
+        console.log("Imagenes cargadas:", window.imagenesData);
+    });
+    
+    // Función para cambiar imagen
+    function cambiarImagen(productoId, nuevoIndice, imagenes) {
+        let imgElement = document.querySelector(`.product-main-img[data-id='${productoId}']`);
+        if (imgElement && imagenes && imagenes[nuevoIndice]) {
+            imgElement.src = imagenes[nuevoIndice];
+            imgElement.setAttribute('data-index', nuevoIndice);
+            
+            // Actualizar contador
+            let contador = document.querySelector(`.contador[data-id='${productoId}']`);
+            if (contador) {
+                contador.innerText = `${nuevoIndice + 1}/${imagenes.length}`;
+            }
+            
+            // Actualizar data-index de los botones
+            let prevBtn = document.querySelector(`.prev-btn[data-id='${productoId}']`);
+            let nextBtn = document.querySelector(`.next-btn[data-id='${productoId}']`);
+            if (prevBtn) prevBtn.setAttribute('data-index', nuevoIndice);
+            if (nextBtn) nextBtn.setAttribute('data-index', nuevoIndice);
+        }
+    }
+    
+    // Evento para el botón siguiente
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('next-btn')) {
+            let productoId = parseInt(e.target.getAttribute('data-id'));
+            let indiceActual = parseInt(e.target.getAttribute('data-index'));
+            let imagenes = window.imagenesData[productoId];
+            
+            if (imagenes && indiceActual + 1 < imagenes.length) {
+                cambiarImagen(productoId, indiceActual + 1, imagenes);
+            }
+        }
+        
+        if (e.target.classList.contains('prev-btn')) {
+            let productoId = parseInt(e.target.getAttribute('data-id'));
+            let indiceActual = parseInt(e.target.getAttribute('data-index'));
+            let imagenes = window.imagenesData[productoId];
+            
+            if (imagenes && indiceActual - 1 >= 0) {
+                cambiarImagen(productoId, indiceActual - 1, imagenes);
+            }
+        }
+    });
+</script>
+{% endblock %}
