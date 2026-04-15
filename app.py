@@ -155,8 +155,20 @@ def recuperar():
 
 @app.route('/reset-password', methods=['GET', 'POST'])
 def reset_password():
-    # Obtener el token de la URL (como viene de Supabase)
+    # Supabase puede enviar el token de dos formas:
+    # 1. Como ?token=xxxx (nuevo sistema)
+    # 2. Dentro de ?url=xxxx (viejo sistema)
+    
     token = request.args.get('token')
+    url_param = request.args.get('url')
+    
+    # Si no hay token directo, intentar extraerlo del parámetro 'url'
+    if not token and url_param:
+        from urllib.parse import urlparse, parse_qs, unquote
+        decoded_url = unquote(url_param)
+        parsed = urlparse(decoded_url)
+        params = parse_qs(parsed.query)
+        token = params.get('token', [None])[0]
     
     print(f"=== TOKEN RECIBIDO: {token} ===")
     
