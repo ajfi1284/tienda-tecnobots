@@ -354,47 +354,6 @@ def admin_resumen():
                           ultimas_ventas=ultimas_ventas,
                           ultimos_gastos=ultimos_gastos)
 
-@app.route('/reset-password', methods=['GET', 'POST'])
-def reset_password():
-    # Supabase puede enviar 'token' o 'access_token'
-    token = request.args.get('token') or request.args.get('access_token')
-    
-    print(f"=== TOKEN RECIBIDO: {token[:50] if token else 'None'}... ===")
-    
-    if request.method == 'POST':
-        new_password = request.form.get('password')
-        confirm = request.form.get('confirm_password')
-        
-        if new_password != confirm:
-            return render_template('reset_password.html', error="Las contraseñas no coinciden")
-        if len(new_password) < 6:
-            return render_template('reset_password.html', error="La contraseña debe tener al menos 6 caracteres")
-        
-        try:
-            # Actualizar contraseña usando el token
-            headers = {
-                "apikey": supabase_key,
-                "Authorization": f"Bearer {token}"
-            }
-            data = {"password": new_password}
-            response = requests.put(f"{supabase_url}/auth/v1/user", headers=headers, json=data)
-            
-            print(f"Respuesta update: {response.status_code} - {response.text}")
-            
-            if response.status_code == 200:
-                return render_template('reset_password.html', success="✅ Contraseña actualizada. Ya puedes iniciar sesión.")
-            else:
-                error_msg = response.json().get('message', 'Error desconocido')
-                return render_template('reset_password.html', error=f"❌ {error_msg}")
-        except Exception as e:
-            print(f"Excepción: {e}")
-            return render_template('reset_password.html', error=f"❌ Error: {str(e)}")
-    
-    if not token:
-        return render_template('reset_password.html', error="🔒 Enlace inválido o expirado. Solicita un nuevo restablecimiento.")
-    
-    return render_template('reset_password.html')
-
 # ========== EJECUCIÓN ==========
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
