@@ -146,7 +146,7 @@ def recuperar():
         email = request.form.get('email')
         try:
             # Supabase envía un correo de recuperación
-            supabase.auth.reset_password_for_email(email)
+            supabase.auth.reset_password_for_email(email, options={"redirect_to": "https://tecnobots-web-production.up.railway.app/reset-password"})
             message = "Se ha enviado un enlace de recuperación a tu correo electrónico."
             return render_template('recuperar.html', message=message)
         except Exception as e:
