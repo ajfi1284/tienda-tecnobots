@@ -155,10 +155,10 @@ def recuperar():
 
 @app.route('/reset-password', methods=['GET', 'POST'])
 def reset_password():
-    # Obtener el token directamente de la URL
-    access_token = request.args.get('token')
+    # Obtener el token de la URL (como viene de Supabase)
+    token = request.args.get('token')
     
-    print(f"Token recibido: {access_token}")
+    print(f"=== TOKEN RECIBIDO: {token} ===")
     
     if request.method == 'POST':
         new_password = request.form.get('password')
@@ -171,26 +171,46 @@ def reset_password():
             return render_template('reset_password.html', error="La contraseña debe tener al menos 6 caracteres")
         
         try:
-            # Actualizar la contraseña usando el token
-            url = f"{supabase_url}/auth/v1/user"
-            headers = {
-                "apikey": supabase_key,
-                "Authorization": f"Bearer {access_token}"
+            # Intercambiar el token por un access_token
+            verify_url = f"{supabase_url}/auth/v1/verify"
+            verify_data = {
+                "token": token,
+                "type": "recovery"
             }
-            data = {"password": new_password}
+            verify_headers = {
+                "apikey": supabase_key,
+                "Content-Type": "application/json"
+            }
             
-            response = requests.put(url, headers=headers, json=data)
-            print(f"Respuesta update: {response.status_code} - {response.text}")
+            verify_response = requests.post(verify_url, json=verify_data, headers=verify_headers)
+            print(f"Verify response: {verify_response.status_code} - {verify_response.text}")
             
-            if response.status_code == 200:
-                return render_template('reset_password.html', success="✅ Contraseña actualizada. Ya puedes iniciar sesión.")
+            if verify_response.status_code == 200:
+                access_token = verify_response.json().get('access_token')
+                
+                # Actualizar contraseña
+                update_url = f"{supabase_url}/auth/v1/user"
+                update_headers = {
+                    "apikey": supabase_key,
+                    "Authorization": f"Bearer {access_token}"
+                }
+                update_data = {"password": new_password}
+                
+                update_response = requests.put(update_url, headers=update_headers, json=update_data)
+                print(f"Update response: {update_response.status_code} - {update_response.text}")
+                
+                if update_response.status_code == 200:
+                    return render_template('reset_password.html', success="✅ Contraseña actualizada. Ya puedes iniciar sesión.")
+                else:
+                    error_msg = update_response.json().get('message', 'Error desconocido')
+                    return render_template('reset_password.html', error=f"❌ {error_msg}")
             else:
-                error_msg = response.json().get('message', 'Error desconocido')
-                return render_template('reset_password.html', error=f"❌ {error_msg}")
+                return render_template('reset_password.html', error="❌ Token inválido o expirado. Solicita un nuevo restablecimiento.")
         except Exception as e:
+            print(f"Excepción: {e}")
             return render_template('reset_password.html', error=f"❌ Error: {str(e)}")
     
-    if not access_token:
+    if not token:
         return render_template('reset_password.html', error="🔒 Enlace inválido o expirado. Solicita un nuevo restablecimiento.")
     
     return render_template('reset_password.html')
