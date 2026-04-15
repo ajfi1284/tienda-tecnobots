@@ -354,6 +354,34 @@ def admin_resumen():
                           ultimas_ventas=ultimas_ventas,
                           ultimos_gastos=ultimos_gastos)
 
+@app.route('/reset-password', methods=['GET', 'POST'])
+def reset_password():
+    token = request.args.get('token')
+    
+    if request.method == 'POST':
+        new_password = request.form.get('password')
+        confirm = request.form.get('confirm_password')
+        
+        if new_password != confirm:
+            return render_template('reset_password.html', error="Las contraseñas no coinciden")
+        if len(new_password) < 6:
+            return render_template('reset_password.html', error="La contraseña debe tener al menos 6 caracteres")
+        
+        try:
+            # Verificar el token y actualizar contraseña
+            response = supabase.auth.api.update_user(token, {"password": new_password})
+            if response:
+                return render_template('reset_password.html', success="✅ Contraseña actualizada. Ya puedes iniciar sesión.")
+            else:
+                return render_template('reset_password.html', error="❌ Error al actualizar la contraseña")
+        except Exception as e:
+            return render_template('reset_password.html', error=f"❌ Error: {str(e)}")
+    
+    if not token:
+        return render_template('reset_password.html', error="🔒 Enlace inválido o expirado. Solicita un nuevo restablecimiento.")
+    
+    return render_template('reset_password.html')
+
 # ========== EJECUCIÓN ==========
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
