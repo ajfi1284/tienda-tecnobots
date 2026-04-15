@@ -1,4 +1,3 @@
-# app.py
 import os
 import requests
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify
@@ -153,44 +152,13 @@ def recuperar():
             error = str(e)
             return render_template('recuperar.html', error=error)
     return render_template('recuperar.html')
-    
+
 @app.route('/reset-password', methods=['GET', 'POST'])
 def reset_password():
-    # Recibir la URL completa con el token
-    confirmation_url = request.args.get('url')
+    # Obtener el token directamente de la URL
+    access_token = request.args.get('token')
     
-    access_token = None
-    
-    if confirmation_url:
-        from urllib.parse import urlparse, parse_qs, unquote
-        # Decodificar la URL
-        decoded_url = unquote(confirmation_url)
-        parsed = urlparse(decoded_url)
-        params = parse_qs(parsed.query)
-        token = params.get('token', [None])[0]
-        
-        print(f"Token de verificación recibido: {token}")
-        
-        if token:
-            # Intercambiar el token por un access_token usando la API de Supabase
-            try:
-                verify_url = f"{supabase_url}/auth/v1/verify"
-                verify_data = {
-                    "token": token,
-                    "type": "recovery"
-                }
-                verify_headers = {
-                    "apikey": supabase_key,
-                    "Content-Type": "application/json"
-                }
-                verify_response = requests.post(verify_url, json=verify_data, headers=verify_headers)
-                print(f"Respuesta verify: {verify_response.status_code} - {verify_response.text}")
-                
-                if verify_response.status_code == 200:
-                    access_token = verify_response.json().get('access_token')
-                    print(f"Access token obtenido: {access_token[:50] if access_token else 'None'}...")
-            except Exception as e:
-                print(f"Error en verify: {e}")
+    print(f"Token recibido: {access_token}")
     
     if request.method == 'POST':
         new_password = request.form.get('password')
@@ -203,6 +171,7 @@ def reset_password():
             return render_template('reset_password.html', error="La contraseña debe tener al menos 6 caracteres")
         
         try:
+            # Actualizar la contraseña usando el token
             url = f"{supabase_url}/auth/v1/user"
             headers = {
                 "apikey": supabase_key,
@@ -225,7 +194,6 @@ def reset_password():
         return render_template('reset_password.html', error="🔒 Enlace inválido o expirado. Solicita un nuevo restablecimiento.")
     
     return render_template('reset_password.html')
-    
 
 # ========== ADMINISTRACIÓN (protegido) ==========
 ADMIN_USER = "TECNOBOTS"
