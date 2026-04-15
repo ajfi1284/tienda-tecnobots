@@ -153,43 +153,6 @@ def recuperar():
             return render_template('recuperar.html', error=error)
     return render_template('recuperar.html')
 
-@app.route('/reset-password', methods=['GET', 'POST'])
-def reset_password():
-    token = request.args.get('token')
-    
-    if request.method == 'POST':
-        new_password = request.form.get('password')
-        confirm = request.form.get('confirm_password')
-        
-        if new_password != confirm:
-            return render_template('reset_password.html', error="Las contraseñas no coinciden")
-        if len(new_password) < 6:
-            return render_template('reset_password.html', error="Mínimo 6 caracteres")
-        
-        try:
-            # Método CORRECTO: verificar el token y obtener la sesión
-            verify_response = supabase.auth.verify_otp({
-                "token": token,
-                "type": "recovery"
-            })
-            
-            # Si la verificación es exitosa, actualizar la contraseña
-            if verify_response.user:
-                update_response = supabase.auth.update_user({
-                    "password": new_password
-                })
-                return render_template('reset_password.html', success="✅ Contraseña actualizada. Ya puedes iniciar sesión.")
-            else:
-                return render_template('reset_password.html', error="❌ Token inválido o expirado.")
-        except Exception as e:
-            print(f"Error: {e}")
-            return render_template('reset_password.html', error=f"❌ Error: {str(e)}")
-    
-    if not token:
-        return render_template('reset_password.html', error="🔒 Enlace inválido o expirado. Solicita un nuevo restablecimiento.")
-    
-    return render_template('reset_password.html')
-
 # ========== ADMINISTRACIÓN (protegido) ==========
 ADMIN_USER = "TECNOBOTS"
 ADMIN_PASS = "TECNO2024"
