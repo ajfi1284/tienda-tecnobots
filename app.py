@@ -1,30 +1,104 @@
 import os
 import requests
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from supabase import create_client, Client
 from dotenv import load_dotenv
-from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 from datetime import datetime
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import secrets
 
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'clave-super-secreta-para-sesion-cambiar-despues'
+app.secret_key = 'clave-super-secreta-cambiar-despues'
 
+# Configuración de Supabase
 supabase_url = os.getenv("SUPABASE_URL")
 supabase_key = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(supabase_url, supabase_key)
 
-# ========== RUTAS PÚBLICAS ==========
+# Configuración de Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 
+# Configuración de correo (para recuperación)
+MAIL_HOST = "smtp.gmail.com"  # o el de tu proveedor
+MAIL_PORT = 587
+MAIL_USER = os.getenv("MAIL_USER")  # tu email
+MAIL_PASS = os.getenv("MAIL_PASS")  # tu contraseña o app password
+
+# ========== MODELO DE USUARIO ==========
+class User(UserMixin):
+    def __init__(self, user_data):
+        self.id = user_data['id']
+        self.email = user_data['email']
+        self.nombre = user_data.get('nombre', '')
+        self.apellido = user_data.get('apellido', '')
+        self.telefono = user_data.get('telefono', '')
+    
+    @staticmethod
+    def get(user_id):
+        try:
+            response = supabase.table("usuarios").select("*").eq("id", user_id).execute()
+            if response.data:
+                return User(response.data[0])
+            return None
+        except:
+            return None
+    
+    @staticmethod
+    def find_by_email(email):
+        try:
+            response = supabase.table("usuarios").select("*").eq("email", email).execute()
+            if response.data:
+                return User(response.data[0])
+            return None
+        except:
+            return None
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
+
+# ========== FUNCIONES DE CORREO ==========
+def send_reset_email(email, token):
+    reset_url = f"https://tecnobots-web-production.up.railway.app/reset-password/{token}"
+    
+    html = f"""
+    <h2>Restablece tu contraseña</h2>
+    <p>Haz clic en el siguiente enlace:</p>
+    <p><a href="{reset_url}">Restablecer mi contraseña</a></p>
+    <p>Este enlace expirará en 1 hora.</p>
+    """
+    
+    msg = MIMEMultipart()
+    msg['Subject'] = 'Restablecer contraseña - TECNOBOTS'
+    msg['From'] = MAIL_USER
+    msg['To'] = email
+    msg.attach(MIMEText(html, 'html'))
+    
+    try:
+        with smtplib.SMTP(MAIL_HOST, MAIL_PORT) as server:
+            server.starttls()
+            server.login(MAIL_USER, MAIL_PASS)
+            server.send_message(msg)
+        return True
+    except Exception as e:
+        print(f"Error enviando email: {e}")
+        return False
+
+# ========== RUTAS PÚBLICAS ==========
 @app.route('/')
 def index():
-    """Página principal: catálogo de productos (solo stock > 0) con sus imágenes"""
     response = supabase.table("productos").select("*").gt("cantidad", 0).execute()
     productos = response.data if response.data else []
     
-    # Cargar imágenes para cada producto
     for p in productos:
         res_imgs = supabase.table("productos_imagenes").select("imagen_url").eq("producto_id", p["id"]).order("orden").execute()
         p["imagenes"] = res_imgs.data if res_imgs.data else []
@@ -64,8 +138,7 @@ def add_to_cart():
     session['cart'] = cart
     return redirect(url_for('index'))
 
-# ========== AUTENTICACIÓN DE USUARIOS (Supabase Auth) ==========
-
+# ========== AUTENTICACIÓN CON FLASK-LOGIN ==========
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -75,25 +148,24 @@ def register():
         apellido = request.form.get('apellido')
         telefono = request.form.get('telefono')
         
+        # Verificar si el usuario ya existe
+        if User.find_by_email(email):
+            return render_template('register.html', error="El correo ya está registrado")
+        
+        hashed_password = generate_password_hash(password)
+        
         try:
-            # Registrar usuario en Supabase Auth
-            user = supabase.auth.sign_up({
+            data = {
                 "email": email,
-                "password": password
-            })
-            
-            # Actualizar el perfil con los datos adicionales
-            if user.user:
-                supabase.table("profiles").update({
-                    "nombre": nombre,
-                    "apellido": apellido,
-                    "telefono": telefono
-                }).eq("id", user.user.id).execute()
-            
+                "password": hashed_password,
+                "nombre": nombre,
+                "apellido": apellido,
+                "telefono": telefono
+            }
+            supabase.table("usuarios").insert(data).execute()
             return redirect(url_for('login'))
         except Exception as e:
-            error = str(e)
-            return render_template('register.html', error=error)
+            return render_template('register.html', error=str(e))
     
     return render_template('register.html')
 
@@ -103,57 +175,92 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        print(f"Intentando login con: {email}")
+        user = User.find_by_email(email)
         
-        try:
-            # Método correcto para la versión actual de Supabase
-            user = supabase.auth.sign_in_with_password({
-                "email": email,
-                "password": password
-            })
-            print("✅ Login exitoso:", user.user.id)
-            session['user'] = user.user.id
-            session['user_email'] = user.user.email
+        if user and check_password_hash(user.password, password):
+            login_user(user)
             return redirect(url_for('index'))
-        except Exception as e:
-            print("❌ ERROR en login:", e)
-            error = str(e)
-            return render_template('login.html', error=error)
+        else:
+            return render_template('login.html', error="Correo o contraseña incorrectos")
     
     return render_template('login.html')
 
 @app.route('/logout')
+@login_required
 def logout():
-    supabase.auth.sign_out()
-    session.pop('user', None)
-    session.pop('user_email', None)
+    logout_user()
     return redirect(url_for('index'))
 
 @app.route('/perfil')
+@login_required
 def perfil():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    
-    # Obtener datos del perfil desde Supabase
-    res = supabase.table("profiles").select("*").eq("id", session['user']).execute()
-    perfil = res.data[0] if res.data else {}
-    return render_template('perfil.html', perfil=perfil, email=session.get('user_email'))
+    return render_template('perfil.html', user=current_user)
 
+# ========== RECUPERACIÓN DE CONTRASEÑA ==========
 @app.route('/recuperar', methods=['GET', 'POST'])
 def recuperar():
     if request.method == 'POST':
         email = request.form.get('email')
-        try:
-            # Supabase envía un correo de recuperación
-            supabase.auth.reset_password_for_email(email, options={"redirect_to": "https://tecnobots-web-production.up.railway.app/reset-password"})
-            message = "Se ha enviado un enlace de recuperación a tu correo electrónico."
-            return render_template('recuperar.html', message=message)
-        except Exception as e:
-            error = str(e)
-            return render_template('recuperar.html', error=error)
+        user = User.find_by_email(email)
+        
+        if user:
+            # Generar token único
+            token = secrets.token_urlsafe(32)
+            
+            # Guardar token en Supabase (tabla temporal)
+            try:
+                supabase.table("reset_tokens").insert({
+                    "user_id": user.id,
+                    "token": token,
+                    "expires_at": datetime.now().timestamp() + 3600  # 1 hora
+                }).execute()
+                
+                send_reset_email(email, token)
+                message = "Se ha enviado un enlace de recuperación a tu correo electrónico."
+                return render_template('recuperar.html', message=message)
+            except Exception as e:
+                return render_template('recuperar.html', error=f"Error: {str(e)}")
+        else:
+            return render_template('recuperar.html', error="No existe una cuenta con ese correo")
+    
     return render_template('recuperar.html')
 
-# ========== ADMINISTRACIÓN (protegido) ==========
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    # Verificar token
+    try:
+        response = supabase.table("reset_tokens").select("*").eq("token", token).execute()
+        if not response.data:
+            return render_template('reset_password.html', error="Enlace inválido o expirado")
+        
+        token_data = response.data[0]
+        if token_data['expires_at'] < datetime.now().timestamp():
+            return render_template('reset_password.html', error="El enlace ha expirado")
+        
+        user_id = token_data['user_id']
+        
+        if request.method == 'POST':
+            new_password = request.form.get('password')
+            confirm = request.form.get('confirm_password')
+            
+            if new_password != confirm:
+                return render_template('reset_password.html', error="Las contraseñas no coinciden")
+            if len(new_password) < 6:
+                return render_template('reset_password.html', error="Mínimo 6 caracteres")
+            
+            hashed = generate_password_hash(new_password)
+            supabase.table("usuarios").update({"password": hashed}).eq("id", user_id).execute()
+            
+            # Eliminar token usado
+            supabase.table("reset_tokens").delete().eq("token", token).execute()
+            
+            return render_template('reset_password.html', success="✅ Contraseña actualizada. Ya puedes iniciar sesión.")
+        
+        return render_template('reset_password.html', token=token)
+    except Exception as e:
+        return render_template('reset_password.html', error=str(e))
+
+# ========== ADMINISTRACIÓN (igual que antes) ==========
 ADMIN_USER = "TECNOBOTS"
 ADMIN_PASS = "TECNO2024"
 
