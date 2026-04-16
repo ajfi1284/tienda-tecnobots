@@ -7,6 +7,3 @@ requests
 werkzeug
 uuid
 datetime
-smtplib
-email
-secrets
