@@ -1,3 +1,4 @@
+# v2 - fix recuperacion contraseña
 import os
 import requests
 from flask import Flask, render_template, request, session, redirect, url_for, jsonify
