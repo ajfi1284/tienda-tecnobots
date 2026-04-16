@@ -63,7 +63,7 @@ class User(UserMixin):
 def load_user(user_id):
     return User.get(user_id)
 
-# ========== FUNCIONES DE CORREO (API Brevo) ==========
+# ========== FUNCIONES DE CORREO ==========
 def send_reset_email(email, token):
     reset_url = f"https://tecnobots-web-production.up.railway.app/reset-password/{token}"
     
@@ -95,6 +95,64 @@ def send_reset_email(email, token):
             return False
     except Exception as e:
         print(f"❌ Error: {e}")
+        return False
+
+def send_purchase_email(user_email, user_nombre, cart_items, total):
+    api_key = os.getenv("BREVO_API_KEY")
+    
+    # Construir la lista de productos
+    productos_html = ""
+    for item in cart_items.values():
+        productos_html += f"""
+        <tr>
+            <td>{item['name']}</td>
+            <td>{item['quantity']}</td>
+            <td>${"%.2f"|format(item['price'])}</td>
+            <td>${"%.2f"|format(item['price'] * item['quantity'])}</td>
+        </tr>
+        """
+    
+    html = f"""
+    <h2>¡Nueva compra en TECNOBOTS!</h2>
+    <p><strong>Cliente:</strong> {user_nombre}</p>
+    <p><strong>Email:</strong> {user_email}</p>
+    <p><strong>Fecha:</strong> {datetime.now().strftime('%d/%m/%Y %H:%M')}</p>
+    
+    <h3>Productos comprados:</h3>
+    <table border="1" cellpadding="8" style="border-collapse: collapse;">
+        <tr style="background: #1f4e6e; color: white;">
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio unitario</th>
+            <th>Subtotal</th>
+        </tr>
+        {productos_html}
+        <tr style="background: #f0f0f0; font-weight: bold;">
+            <td colspan="3" align="right">TOTAL:</td>
+            <td>${"%.2f"|format(total)}</td>
+        </tr>
+    </table>
+    
+    <p><strong>Método de pago:</strong> Por confirmar (el cliente se comunicará)</p>
+    <p><strong>Teléfono de contacto:</strong> {current_user.telefono if current_user.is_authenticated else 'No registrado'}</p>
+    """
+    
+    data = {
+        "sender": {"email": "tecnobotss2021@gmail.com", "name": "TECNOBOTS"},
+        "to": [{"email": "tecnobotss2021@gmail.com"}, {"email": user_email}],
+        "subject": f"Nueva compra - TECNOBOTS - {user_nombre}",
+        "htmlContent": html
+    }
+    
+    try:
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={"api-key": api_key, "Content-Type": "application/json"},
+            json=data
+        )
+        return response.status_code == 201
+    except Exception as e:
+        print(f"Error enviando correo de compra: {e}")
         return False
 
 # ========== RUTAS PÚBLICAS ==========
@@ -141,6 +199,33 @@ def add_to_cart():
         }
     session['cart'] = cart
     return redirect(url_for('index'))
+
+@app.route('/remove_from_cart', methods=['POST'])
+def remove_from_cart():
+    product_id = request.form.get('product_id')
+    
+    if 'cart' in session and product_id in session['cart']:
+        del session['cart'][product_id]
+        session.modified = True
+    
+    return redirect(url_for('cart'))
+
+@app.route('/checkout', methods=['POST'])
+@login_required
+def checkout():
+    cart_items = session.get('cart', {})
+    if not cart_items:
+        return redirect(url_for('cart'))
+    
+    total = sum(item['price'] * item['quantity'] for item in cart_items.values())
+    
+    # Enviar correo
+    if send_purchase_email(current_user.email, current_user.nombre, cart_items, total):
+        # Vaciar el carrito
+        session.pop('cart', None)
+        return render_template('checkout_success.html', mensaje="✅ ¡Compra realizada! Te hemos enviado un correo con los detalles.")
+    else:
+        return render_template('checkout_success.html', error="❌ Hubo un error al enviar el correo. Intenta de nuevo.")
 
 # ========== AUTENTICACIÓN CON FLASK-LOGIN ==========
 @app.route('/register', methods=['GET', 'POST'])
