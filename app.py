@@ -185,7 +185,7 @@ def login():
         
         user = User.find_by_email(email)
         
-        if user and check_password_hash(user.password, password):
+        if user and check_password_hash(user._password, password):
             login_user(user)
             return redirect(url_for('index'))
         else:
