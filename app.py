@@ -74,7 +74,7 @@ def send_reset_email(email, token):
     api_key = os.getenv("BREVO_API_KEY")
     
     data = {
-        "sender": {"email": "a843ee001@smtp-brevo.com", "name": "TECNOBOTS"},
+        "sender": {"email": "tecnobotss2021@gmail.com", "name": "TECNOBOTS"},
         "to": [{"email": email}],
         "subject": "Restablecer contraseña - TECNOBOTS",
         "htmlContent": f"""
