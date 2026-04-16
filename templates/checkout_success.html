@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="checkout-container">
+    <h2>📦 Estado de tu compra</h2>
+    
+    {% if mensaje %}
+        <div class="success-message">
+            <span>✅</span>
+            <p>{{ mensaje }}</p>
+        </div>
+        <div class="checkout-actions">
+            <a href="{{ url_for('index') }}" class="btn-home">🏠 Volver a la tienda</a>
+        </div>
+    {% elif error %}
+        <div class="error-message">
+            <span>❌</span>
+            <p>{{ error }}</p>
+        </div>
+        <div class="checkout-actions">
+            <a href="{{ url_for('cart') }}" class="btn-back">🛒 Volver al carrito</a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .checkout-container {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 30px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    h2 {
+        color: #1f4e6e;
+        margin-bottom: 25px;
+    }
+    .success-message {
+        background: #d4edda;
+        color: #155724;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+    .success-message span {
+        font-size: 3rem;
+        display: block;
+    }
+    .error-message {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+    .error-message span {
+        font-size: 3rem;
+        display: block;
+    }
+    .checkout-actions {
+        margin-top: 20px;
+    }
+    .btn-home, .btn-back {
+        display: inline-block;
+        background: #1f4e6e;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        text-decoration: none;
+    }
+    .btn-home:hover, .btn-back:hover {
+        background: #2c7da0;
+    }
+</style>
+{% endblock %}
