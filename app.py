@@ -38,6 +38,7 @@ class User(UserMixin):
     def __init__(self, user_data):
         self.id = user_data['id']
         self.email = user_data['email']
+        self.password = user_data['password']  # Agregar este campo
         self.nombre = user_data.get('nombre', '')
         self.apellido = user_data.get('apellido', '')
         self.telefono = user_data.get('telefono', '')
@@ -185,7 +186,7 @@ def login():
         
         user = User.find_by_email(email)
         
-        if user and check_password_hash(user._password, password):
+        if user and check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for('index'))
         else:
