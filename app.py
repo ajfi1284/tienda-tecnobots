@@ -103,14 +103,19 @@ def send_purchase_email(user_email, user_nombre, cart_items, total):
     # Construir la lista de productos
     productos_html = ""
     for item in cart_items.values():
+        precio = item['price']
+        cantidad = item['quantity']
+        subtotal = precio * cantidad
         productos_html += f"""
         <tr>
             <td>{item['name']}</td>
-            <td>{item['quantity']}</td>
-            <td>${"%.2f"|format(item['price'])}</td>
-            <td>${"%.2f"|format(item['price'] * item['quantity'])}</td>
+            <td>{cantidad}</td>
+            <td>${precio:.2f}</td>
+            <td>${subtotal:.2f}</td>
         </tr>
         """
+    
+    telefono = current_user.telefono if current_user.is_authenticated else 'No registrado'
     
     html = f"""
     <h2>¡Nueva compra en TECNOBOTS!</h2>
@@ -129,12 +134,12 @@ def send_purchase_email(user_email, user_nombre, cart_items, total):
         {productos_html}
         <tr style="background: #f0f0f0; font-weight: bold;">
             <td colspan="3" align="right">TOTAL:</td>
-            <td>${"%.2f"|format(total)}</td>
+            <td>${total:.2f}</td>
         </tr>
-    </table>
+    一
     
     <p><strong>Método de pago:</strong> Por confirmar (el cliente se comunicará)</p>
-    <p><strong>Teléfono de contacto:</strong> {current_user.telefono if current_user.is_authenticated else 'No registrado'}</p>
+    <p><strong>Teléfono de contacto:</strong> {telefono}</p>
     """
     
     data = {
