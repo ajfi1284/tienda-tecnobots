@@ -212,7 +212,7 @@ def recuperar():
                 supabase.table("reset_tokens").insert({
                     "user_id": user.id,
                     "token": token,
-                    "expires_at": datetime.now().timestamp() + 3600  # 1 hora
+                    "expires_at": int(datetime.now().timestamp() + 3600)  # 1 hora
                 }).execute()
                 
                 send_reset_email(email, token)
