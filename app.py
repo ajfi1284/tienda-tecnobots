@@ -84,13 +84,15 @@ def send_reset_email(email, token):
     msg.attach(MIMEText(html, 'html'))
     
     try:
-        with smtplib.SMTP(MAIL_HOST, MAIL_PORT) as server:
-            server.starttls()
+        # Usar SMTP_SSL en lugar de STARTTLS
+        import smtplib
+        with smtplib.SMTP_SSL(MAIL_HOST, MAIL_PORT) as server:
             server.login(MAIL_USER, MAIL_PASS)
             server.send_message(msg)
+        print(f"✅ Correo enviado a {email}")
         return True
     except Exception as e:
-        print(f"Error enviando email: {e}")
+        print(f"❌ Error enviando email: {e}")
         return False
 
 # ========== RUTAS PÚBLICAS ==========
