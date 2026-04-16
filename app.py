@@ -68,31 +68,37 @@ def load_user(user_id):
 
 # ========== FUNCIONES DE CORREO ==========
 def send_reset_email(email, token):
+    import requests
     reset_url = f"https://tecnobots-web-production.up.railway.app/reset-password/{token}"
     
-    html = f"""
-    <h2>Restablece tu contraseña</h2>
-    <p>Haz clic en el siguiente enlace:</p>
-    <p><a href="{reset_url}">Restablecer mi contraseña</a></p>
-    <p>Este enlace expirará en 1 hora.</p>
-    """
+    api_key = os.getenv("BREVO_API_KEY")
     
-    msg = MIMEMultipart()
-    msg['Subject'] = 'Restablecer contraseña - TECNOBOTS'
-    msg['From'] = MAIL_USER
-    msg['To'] = email
-    msg.attach(MIMEText(html, 'html'))
+    data = {
+        "sender": {"email": "a843ee001@smtp-brevo.com", "name": "TECNOBOTS"},
+        "to": [{"email": email}],
+        "subject": "Restablecer contraseña - TECNOBOTS",
+        "htmlContent": f"""
+        <h2>Restablece tu contraseña</h2>
+        <p>Haz clic en el siguiente enlace:</p>
+        <p><a href="{reset_url}">Restablecer mi contraseña</a></p>
+        <p>Este enlace expirará en 1 hora.</p>
+        """
+    }
     
     try:
-        # Usar SMTP_SSL en lugar de STARTTLS
-        import smtplib
-        with smtplib.SMTP_SSL(MAIL_HOST, MAIL_PORT) as server:
-            server.login(MAIL_USER, MAIL_PASS)
-            server.send_message(msg)
-        print(f"✅ Correo enviado a {email}")
-        return True
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={"api-key": api_key, "Content-Type": "application/json"},
+            json=data
+        )
+        if response.status_code == 201:
+            print(f"✅ Correo enviado a {email}")
+            return True
+        else:
+            print(f"❌ Error API: {response.text}")
+            return False
     except Exception as e:
-        print(f"❌ Error enviando email: {e}")
+        print(f"❌ Error: {e}")
         return False
 
 # ========== RUTAS PÚBLICAS ==========
