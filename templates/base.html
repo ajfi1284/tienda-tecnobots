@@ -20,7 +20,9 @@
             <div class="header-actions">
                 <div class="user-menu">
                     <button id="user-btn">
-                        {% if current_user.is_authenticated %}
+                        {% if session.get('admin_logged') %}
+                            👤 Administrador
+                        {% elif current_user.is_authenticated %}
                             👤 Hola, {{ current_user.nombre }}
                         {% else %}
                             👤 Cuenta
