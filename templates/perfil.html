@@ -2,28 +2,136 @@
 
 {% block content %}
 <div class="perfil-container">
-    <h2>Mi Perfil</h2>
+    <h2>👤 Mi Perfil</h2>
+    
     <div class="perfil-info">
         <p><strong>Nombre:</strong> {{ current_user.nombre }} {{ current_user.apellido }}</p>
         <p><strong>Email:</strong> {{ current_user.email }}</p>
         <p><strong>Teléfono:</strong> {{ current_user.telefono }}</p>
     </div>
-    <a href="{{ url_for('logout') }}" class="btn-logout">Cerrar sesión</a>
+    
+    <div class="mis-compras">
+        <h3>📋 Mis compras</h3>
+        
+        {% if compras %}
+            {% for compra in compras %}
+            <div class="compra-card">
+                <div class="compra-header">
+                    <span><strong>Fecha:</strong> {{ compra.fecha[:16] }}</span>
+                    <span><strong>Total:</strong> ${{ "%.2f"|format(compra.total) }}</span>
+                    <span><strong>Estado:</strong> 
+                        {% if compra.estado == 'Concretada' %}
+                            ✅ Concretada
+                        {% else %}
+                            ⏳ Pendiente
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="compra-productos">
+                    <table class="compra-table">
+                        <thead>
+                            <tr><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for p in compra.productos %}
+                            <tr>
+                                <td>{{ p.nombre }}</td>
+                                <td>{{ p.cantidad }}</td>
+                                <td>${{ "%.2f"|format(p.precio) }}</td>
+                                <td>${{ "%.2f"|format(p.subtotal) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-compras">
+                <p>📭 No has realizado ninguna compra aún.</p>
+                <a href="{{ url_for('index') }}" class="btn-shop">🛍️ Ir a la tienda</a>
+            </div>
+        {% endif %}
+    </div>
+    
+    <div class="perfil-actions">
+        <a href="{{ url_for('logout') }}" class="btn-logout">🚪 Cerrar sesión</a>
+    </div>
 </div>
 
 <style>
     .perfil-container {
-        max-width: 500px;
+        max-width: 1000px;
         margin: 40px auto;
         padding: 30px;
         background: white;
         border-radius: 15px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
+    h2 {
+        color: #1f4e6e;
+        text-align: center;
+        margin-bottom: 25px;
+    }
+    h3 {
+        color: #1f4e6e;
+        margin: 20px 0 15px 0;
+        border-bottom: 2px solid #1f4e6e;
+        padding-bottom: 5px;
+    }
+    .perfil-info {
+        background: #f0f8ff;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
     .perfil-info p {
-        margin: 15px 0;
-        padding: 10px;
-        border-bottom: 1px solid #eee;
+        margin: 8px 0;
+    }
+    .compra-card {
+        background: #f9f9f9;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        padding: 15px;
+        border: 1px solid #ddd;
+    }
+    .compra-header {
+        display: flex;
+        justify-content: space-between;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #1f4e6e;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .compra-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    .compra-table th, .compra-table td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    .compra-table th {
+        background: #1f4e6e;
+        color: white;
+    }
+    .empty-compras {
+        text-align: center;
+        padding: 30px;
+        background: #f9f9f9;
+        border-radius: 10px;
+    }
+    .btn-shop {
+        display: inline-block;
+        background: #1f4e6e;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        text-decoration: none;
+        margin-top: 10px;
     }
     .btn-logout {
         display: inline-block;
@@ -33,6 +141,9 @@
         border-radius: 25px;
         text-decoration: none;
         margin-top: 20px;
+    }
+    .perfil-actions {
+        text-align: center;
     }
 </style>
 {% endblock %}
