@@ -336,6 +336,12 @@ def login():
     
     return render_template('login.html')
 
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
 @app.route('/perfil', methods=['GET', 'POST'])
 @login_required
 def perfil():
