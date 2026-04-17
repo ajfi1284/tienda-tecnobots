@@ -8,7 +8,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 from datetime import datetime
 import secrets
-
 load_dotenv()
 
 app = Flask(__name__)
@@ -337,16 +336,41 @@ def login():
     
     return render_template('login.html')
 
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
-
-@app.route('/perfil')
+@app.route('/perfil', methods=['GET', 'POST'])
 @login_required
 def perfil():
-    # Buscar compras del usuario logueado
+    if request.method == 'POST':
+        # Obtener datos del formulario
+        nombre = request.form.get('nombre')
+        apellido = request.form.get('apellido')
+        telefono = request.form.get('telefono')
+        email = request.form.get('email')
+        
+        try:
+            # Actualizar datos en Supabase
+            supabase.table("usuarios").update({
+                "nombre": nombre,
+                "apellido": apellido,
+                "telefono": telefono,
+                "email": email
+            }).eq("id", current_user.id).execute()
+            
+            # Actualizar el objeto current_user (opcional)
+            current_user.nombre = nombre
+            current_user.apellido = apellido
+            current_user.telefono = telefono
+            current_user.email = email
+            
+            mensaje = "✅ Datos actualizados correctamente"
+        except Exception as e:
+            mensaje = f"❌ Error: {str(e)}"
+        
+        # Buscar compras del usuario
+        response = supabase.table("ventas_historial").select("*").eq("cliente_email", current_user.email).order("fecha", desc=True).execute()
+        compras = response.data if response.data else []
+        return render_template('perfil.html', user=current_user, compras=compras, mensaje=mensaje)
+    
+    # GET: mostrar perfil
     response = supabase.table("ventas_historial").select("*").eq("cliente_email", current_user.email).order("fecha", desc=True).execute()
     compras = response.data if response.data else []
     return render_template('perfil.html', user=current_user, compras=compras)
