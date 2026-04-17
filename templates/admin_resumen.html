@@ -1,265 +1,296 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resumen Financiero - TECNOBOTS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        h1 {
-            color: white;
-            font-size: 1.8rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-        .logout-btn {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: all 0.3s;
-        }
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            transition: transform 0.3s;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        .card h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1rem;
-            border-bottom: 2px solid #667eea;
-            padding-bottom: 10px;
-        }
-        .card .valor {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #667eea;
-        }
-        .card .label {
-            color: #666;
-            margin-top: 10px;
-            font-size: 0.85rem;
-        }
-        .section {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            overflow-x: auto;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        .section h2 {
-            color: #333;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #667eea;
-            font-size: 1.3rem;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        th, td {
-            padding: 10px 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-        th {
-            background: #667eea;
-            color: white;
-            font-weight: bold;
-        }
-        tr:hover {
-            background: #f5f5f5;
-        }
-        .credito {
-            color: #f39c12;
-            font-weight: bold;
-        }
-        .pagado {
-            color: #27ae60;
-        }
-        .back-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1rem;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 10px;
-        }
-        .back-btn:hover {
-            background: #764ba2;
-        }
-        @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-            h1 {
-                font-size: 1.3rem;
-            }
-            .dashboard {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-            .card .valor {
-                font-size: 1.4rem;
-            }
-            table {
-                font-size: 11px;
-            }
-            th, td {
-                padding: 6px 4px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🤖 TECNOBOTS - Resumen Financiero</h1>
-            <a href="{{ url_for('admin_dashboard') }}" class="logout-btn">← Volver al Panel</a>
-        </div>
-        
-        <div class="dashboard">
-            <div class="card">
-                <h3>💰 EFECTIVO</h3>
-                <div class="valor">${{ "%.2f"|format(efectivo) }}</div>
-                <div class="label">Disponible</div>
-            </div>
-            <div class="card">
-                <h3>📦 MERCANCÍA</h3>
-                <div class="valor">${{ "%.2f"|format(mercancia) }}</div>
-                <div class="label">En inventario</div>
-            </div>
-            <div class="card">
-                <h3>🏪 ALMACÉN (Pendiente)</h3>
-                <div class="valor">${{ "%.2f"|format(total_almacen) }}</div>
-                <div class="label">Productos en almacén</div>
-            </div>
-            <div class="card">
-                <h3>🆕 PRODUCTOS NUEVOS</h3>
-                <div class="valor">${{ "%.2f"|format(total_productos_nuevos) }}</div>
-                <div class="label">Pendientes de autorizar</div>
-            </div>
-            <div class="card">
-                <h3>⚠️ CRÉDITOS PENDIENTES</h3>
-                <div class="valor">${{ "%.2f"|format(creditos_pendientes) }}</div>
-                <div class="label">Por cobrar</div>
-            </div>
-            <div class="card">
-                <h3>📊 VENTAS HOY</h3>
-                <div class="valor">${{ "%.2f"|format(ventas_hoy) }}</div>
-                <div class="label">Total del día</div>
-            </div>
-            <div class="card">
-                <h3>📈 VENTAS MES</h3>
-                <div class="valor">${{ "%.2f"|format(ventas_mes) }}</div>
-                <div class="label">Acumulado</div>
-            </div>
-            <div class="card">
-                <h3>🏦 CAPITAL NETO</h3>
-                <div class="valor">${{ "%.2f"|format(mercancia + efectivo + total_almacen + total_productos_nuevos + creditos_pendientes) }}</div>
-                <div class="label">Mercancía + Efectivo + Almacén + Productos Nuevos + Créditos</div>
-            </div>
-        </div>
-        
-        <div class="section">
-            <h2>📋 ÚLTIMAS VENTAS</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Cliente</th>
-                        <th>Total</th>
-                        <th>Estado</th>
-                        <th>Abono</th>
-                        <th>Pendiente</th>
-                        <th>Fecha</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for venta in ultimas_ventas %}
-                    <tr>
-                        <td>{{ venta.numero_venta }}</td>
-                        <td>{{ venta.cliente or 'Consumidor final' }}</td>
-                        <td>${{ "%.2f"|format(venta.total) }}</td>
-                        <td class="{% if venta.estado == 'Crédito' %}credito{% else %}pagado{% endif %}">{{ venta.estado }}</td>
-                        <td>${{ "%.2f"|format(venta.abono) }}</td>
-                        <td>${{ "%.2f"|format(venta.total - venta.abono) }}</td>
-                        <td>{{ venta.fecha_venta[:19] if venta.fecha_venta else 'N/A' }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="section">
-            <h2>💸 GASTOS RECIENTES</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Descripción</th>
-                        <th>Monto</th>
-                        <th>Fecha</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for gasto in ultimos_gastos %}
-                    <tr>
-                        <td>{{ gasto.descripcion }}</td>
-                        <td>${{ "%.2f"|format(gasto.monto) }}</td>
-                        <td>{{ gasto.fecha[:19] if gasto.fecha else 'N/A' }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        
-        <a href="{{ url_for('admin_dashboard') }}" class="back-btn">← Volver al Panel de Administración</a>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="admin-container">
+    <h2>💰 Resumen Financiero</h2>
+    
+    <div class="admin-nav">
+        <a href="{{ url_for('admin_dashboard') }}" class="admin-link">📦 Productos</a>
+        <a href="{{ url_for('admin_resumen') }}" class="admin-link active">💰 Resumen Financiero</a>
+        <a href="{{ url_for('admin_ventas') }}" class="admin-link">📋 Historial de Ventas</a>
+        <a href="{{ url_for('admin_logout') }}" class="admin-link">🚪 Cerrar sesión</a>
     </div>
-</body>
-</html>
+    
+    <!-- Filtros por mes y año -->
+    <div class="filtros">
+        <form method="GET" class="filtros-form">
+            <select name="mes">
+                <option value="todos" {% if mes_seleccionado == 'todos' %}selected{% endif %}>Todos los meses</option>
+                <option value="01" {% if mes_seleccionado == '01' %}selected{% endif %}>Enero</option>
+                <option value="02" {% if mes_seleccionado == '02' %}selected{% endif %}>Febrero</option>
+                <option value="03" {% if mes_seleccionado == '03' %}selected{% endif %}>Marzo</option>
+                <option value="04" {% if mes_seleccionado == '04' %}selected{% endif %}>Abril</option>
+                <option value="05" {% if mes_seleccionado == '05' %}selected{% endif %}>Mayo</option>
+                <option value="06" {% if mes_seleccionado == '06' %}selected{% endif %}>Junio</option>
+                <option value="07" {% if mes_seleccionado == '07' %}selected{% endif %}>Julio</option>
+                <option value="08" {% if mes_seleccionado == '08' %}selected{% endif %}>Agosto</option>
+                <option value="09" {% if mes_seleccionado == '09' %}selected{% endif %}>Septiembre</option>
+                <option value="10" {% if mes_seleccionado == '10' %}selected{% endif %}>Octubre</option>
+                <option value="11" {% if mes_seleccionado == '11' %}selected{% endif %}>Noviembre</option>
+                <option value="12" {% if mes_seleccionado == '12' %}selected{% endif %}>Diciembre</option>
+            </select>
+            
+            <select name="año">
+                <option value="todos" {% if año_seleccionado == 'todos' %}selected{% endif %}>Todos los años</option>
+                {% for año in años_disponibles %}
+                    <option value="{{ año }}" {% if año_seleccionado == año %}selected{% endif %}>{{ año }}</option>
+                {% endfor %}
+            </select>
+            
+            <button type="submit" class="btn-filtrar">🔍 Filtrar</button>
+            <a href="{{ url_for('admin_resumen') }}" class="btn-limpiar">🗑️ Limpiar</a>
+        </form>
+    </div>
+    
+    <!-- Tarjetas de resumen -->
+    <div class="resumen-grid">
+        <div class="resumen-card">
+            <h3>💰 Efectivo en caja</h3>
+            <p class="resumen-valor">${{ "%.2f"|format(efectivo) }}</p>
+        </div>
+        
+        <div class="resumen-card">
+            <h3>📦 Mercancía en tienda</h3>
+            <p class="resumen-valor">${{ "%.2f"|format(mercancia) }}</p>
+        </div>
+        
+        <div class="resumen-card">
+            <h3>💳 Créditos pendientes</h3>
+            <p class="resumen-valor">${{ "%.2f"|format(creditos_pendientes) }}</p>
+        </div>
+        
+        <div class="resumen-card">
+            <h3>📈 Ventas del período</h3>
+            <p class="resumen-valor">${{ "%.2f"|format(ventas_periodo) }}</p>
+        </div>
+    </div>
+    
+    <!-- Mini-módulos -->
+    <div class="mini-modulos">
+        <div class="modulo">
+            <h3>📋 Ventas a crédito</h3>
+            {% if creditos_lista %}
+                <table class="mini-table">
+                    <thead><tr><th>Cliente</th><th>Total</th><th>Abono</th><th>Pendiente</th><th>Fecha</th></tr></thead>
+                    <tbody>
+                        {% for credito in creditos_lista %}
+                        <tr>
+                            <td>{{ credito.cliente }}</td>
+                            <td>${{ "%.2f"|format(credito.total) }}</td>
+                            <td>${{ "%.2f"|format(credito.abono) }}</td>
+                            <td>${{ "%.2f"|format(credito.total - credito.abono) }}</td>
+                            <td>{{ credito.fecha_venta[:10] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No hay créditos en el período seleccionado</p>
+            {% endif %}
+        </div>
+        
+        <div class="modulo">
+            <h3>🛒 Ventas del período</h3>
+            {% if ventas_lista %}
+                <table class="mini-table">
+                    <thead><tr><th>Cliente</th><th>Total</th><th>Fecha</th></tr></thead>
+                    <tbody>
+                        {% for venta in ventas_lista %}
+                        <tr>
+                            <td>{{ venta.cliente }}</td>
+                            <td>${{ "%.2f"|format(venta.total) }}</td>
+                            <td>{{ venta.fecha_venta[:10] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No hay ventas en el período seleccionado</p>
+            {% endif %}
+        </div>
+        
+        <div class="modulo">
+            <h3>💸 Gastos recientes</h3>
+            {% if gastos_lista %}
+                <table class="mini-table">
+                    <thead><tr><th>Concepto</th><th>Monto</th><th>Fecha</th></tr></thead>
+                    <tbody>
+                        {% for gasto in gastos_lista %}
+                        <tr>
+                            <td>{{ gasto.concepto }}</td>
+                            <td>${{ "%.2f"|format(gasto.monto) }}</td>
+                            <td>{{ gasto.fecha[:10] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No hay gastos registrados</p>
+            {% endif %}
+        </div>
+        
+        <div class="modulo">
+            <h3>📦 Productos en almacén</h3>
+            {% if almacen_lista %}
+                <table class="mini-table">
+                    <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio Venta</th></tr></thead>
+                    <tbody>
+                        {% for item in almacen_lista %}
+                        <tr>
+                            <td>{{ item.nombre }}</td>
+                            <td>{{ item.cantidad }}</td>
+                            <td>${{ "%.2f"|format(item.precio_venta) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No hay productos en almacén</p>
+            {% endif %}
+        </div>
+        
+        <div class="modulo">
+            <h3>🆕 Productos nuevos pendientes</h3>
+            {% if nuevos_lista %}
+                <table class="mini-table">
+                    <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio Venta</th></tr></thead>
+                    <tbody>
+                        {% for item in nuevos_lista %}
+                        <tr>
+                            <td>{{ item.nombre }}</td>
+                            <td>{{ item.cantidad }}</td>
+                            <td>${{ "%.2f"|format(item.precio_venta) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No hay productos nuevos pendientes</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-container {
+        max-width: 1400px;
+        margin: 30px auto;
+        padding: 20px;
+        background: white;
+        border-radius: 15px;
+    }
+    h2 {
+        color: #1f4e6e;
+        text-align: center;
+    }
+    .admin-nav {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin: 20px 0;
+        flex-wrap: wrap;
+    }
+    .admin-link {
+        background: #1f4e6e;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        text-decoration: none;
+    }
+    .admin-link.active {
+        background: #2c7da0;
+    }
+    .filtros {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    .filtros-form {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .filtros-form select, .filtros-form button {
+        padding: 8px 15px;
+        border-radius: 25px;
+        border: 1px solid #ddd;
+    }
+    .btn-filtrar {
+        background: #1f4e6e;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-limpiar {
+        background: #6c757d;
+        color: white;
+        text-decoration: none;
+        padding: 8px 15px;
+        border-radius: 25px;
+    }
+    .resumen-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .resumen-card {
+        background: linear-gradient(135deg, #1f4e6e, #2c7da0);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+    }
+    .resumen-card h3 {
+        margin: 0 0 10px 0;
+        font-size: 1rem;
+    }
+    .resumen-valor {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin: 0;
+    }
+    .mini-modulos {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .modulo {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 10px;
+        border: 1px solid #ddd;
+    }
+    .modulo h3 {
+        color: #1f4e6e;
+        margin-top: 0;
+        border-bottom: 2px solid #1f4e6e;
+        padding-bottom: 5px;
+    }
+    .mini-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+    .mini-table th, .mini-table td {
+        padding: 5px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    .mini-table th {
+        background: #1f4e6e;
+        color: white;
+    }
+    @media (max-width: 768px) {
+        .mini-modulos {
+            grid-template-columns: 1fr;
+        }
+        .resumen-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
