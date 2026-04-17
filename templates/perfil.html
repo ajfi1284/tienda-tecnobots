@@ -9,32 +9,63 @@
     {% endif %}
     
     <form method="POST" class="perfil-form">
-    <div class="form-group">
-        <label>Nombre</label>
-        <input type="text" name="nombre" value="{{ user.nombre }}" required>
-    </div>
-    
-    <div class="form-group">
-        <label>Apellido</label>
-        <input type="text" name="apellido" value="{{ user.apellido }}" required>
-    </div>
-    
-    <div class="form-group">
-        <label>Teléfono</label>
-        <input type="text" name="telefono" value="{{ user.telefono }}" required>
-    </div>
-    
-    <div class="form-group">
-        <label>Correo electrónico</label>
-        <input type="email" name="email" value="{{ user.email }}" readonly disabled style="background:#f0f0f0; cursor:not-allowed;">
-        <small style="color:#666;">El correo no se puede cambiar porque está vinculado a tu historial de compras</small>
-    </div>
-    
-    <button type="submit" class="btn-guardar">💾 Guardar cambios</button>
-</form>
+        <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" name="nombre" value="{{ user.nombre }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Apellido</label>
+            <input type="text" name="apellido" value="{{ user.apellido }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" name="telefono" value="{{ user.telefono }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Correo electrónico</label>
+            <input type="email" name="email" value="{{ user.email }}" readonly disabled style="background:#f0f0f0; cursor:not-allowed;">
+            <small style="color:#666;">El correo no se puede cambiar porque está vinculado a tu historial de compras</small>
+        </div>
+        
+        <button type="submit" class="btn-guardar">💾 Guardar cambios</button>
+    </form>
     
     <div class="mis-compras">
         <h3>📋 Mis compras</h3>
+        
+        <!-- Filtros -->
+        <div class="filtros">
+            <form method="GET" class="filtros-form">
+                <select name="mes">
+                    <option value="todos" {% if mes_seleccionado == 'todos' %}selected{% endif %}>Todos los meses</option>
+                    <option value="01" {% if mes_seleccionado == '01' %}selected{% endif %}>Enero</option>
+                    <option value="02" {% if mes_seleccionado == '02' %}selected{% endif %}>Febrero</option>
+                    <option value="03" {% if mes_seleccionado == '03' %}selected{% endif %}>Marzo</option>
+                    <option value="04" {% if mes_seleccionado == '04' %}selected{% endif %}>Abril</option>
+                    <option value="05" {% if mes_seleccionado == '05' %}selected{% endif %}>Mayo</option>
+                    <option value="06" {% if mes_seleccionado == '06' %}selected{% endif %}>Junio</option>
+                    <option value="07" {% if mes_seleccionado == '07' %}selected{% endif %}>Julio</option>
+                    <option value="08" {% if mes_seleccionado == '08' %}selected{% endif %}>Agosto</option>
+                    <option value="09" {% if mes_seleccionado == '09' %}selected{% endif %}>Septiembre</option>
+                    <option value="10" {% if mes_seleccionado == '10' %}selected{% endif %}>Octubre</option>
+                    <option value="11" {% if mes_seleccionado == '11' %}selected{% endif %}>Noviembre</option>
+                    <option value="12" {% if mes_seleccionado == '12' %}selected{% endif %}>Diciembre</option>
+                </select>
+                
+                <select name="año">
+                    <option value="todos" {% if año_seleccionado == 'todos' %}selected{% endif %}>Todos los años</option>
+                    {% for año in años_disponibles %}
+                        <option value="{{ año }}" {% if año_seleccionado == año %}selected{% endif %}>{{ año }}</option>
+                    {% endfor %}
+                </select>
+                
+                <button type="submit" class="btn-filtrar">🔍 Filtrar</button>
+                <a href="{{ url_for('perfil') }}" class="btn-limpiar">🗑️ Limpiar</a>
+            </form>
+        </div>
         
         {% if compras %}
             {% for compra in compras %}
@@ -71,7 +102,7 @@
             {% endfor %}
         {% else %}
             <div class="empty-compras">
-                <p>📭 No has realizado ninguna compra aún.</p>
+                <p>📭 No hay compras en el período seleccionado.</p>
                 <a href="{{ url_for('index') }}" class="btn-shop">🛍️ Ir a la tienda</a>
             </div>
         {% endif %}
@@ -139,6 +170,36 @@
         border-radius: 10px;
         margin-bottom: 20px;
         text-align: center;
+    }
+    .filtros {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    .filtros-form {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .filtros-form select, .filtros-form button {
+        padding: 8px 15px;
+        border-radius: 25px;
+        border: 1px solid #ddd;
+    }
+    .btn-filtrar {
+        background: #1f4e6e;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-limpiar {
+        background: #6c757d;
+        color: white;
+        text-decoration: none;
+        padding: 8px 15px;
+        border-radius: 25px;
     }
     .compra-card {
         background: #f9f9f9;
