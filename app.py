@@ -358,7 +358,6 @@ def perfil():
                 "nombre": nombre,
                 "apellido": apellido,
                 "telefono": telefono,
-                "email": email
             }).eq("id", current_user.id).execute()
             
             # Actualizar el objeto current_user (opcional)
