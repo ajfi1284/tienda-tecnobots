@@ -657,6 +657,7 @@ def admin_producto_nuevo():
         
         data = {
             "nombre": nombre,
+            "descripcion": request.form.get('descripcion'),
             "precio_venta": precio_venta,
             "cantidad": cantidad,
             "precio_compra": precio_compra,
@@ -710,6 +711,7 @@ def admin_producto_editar(id):
         
         update_data = {
             "nombre": nombre,
+            "descripcion": request.form.get('descripcion'),
             "precio_venta": precio_venta,
             "cantidad": cantidad,
             "precio_compra": precio_compra,
