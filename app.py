@@ -100,7 +100,6 @@ def send_reset_email(email, token):
 def send_purchase_email(user_email, user_nombre, cart_items, total):
     api_key = os.getenv("BREVO_API_KEY")
     
-    # Construir la lista de productos
     productos_html = ""
     for item in cart_items.values():
         precio = item['price']
@@ -160,10 +159,70 @@ def send_purchase_email(user_email, user_nombre, cart_items, total):
         print(f"Error enviando correo de compra: {e}")
         return False
 
+# ========== VENTAS ==========
+def guardar_venta_en_historial(user_email, user_nombre, cart_items, total):
+    productos_lista = []
+    for item in cart_items.values():
+        productos_lista.append({
+            "nombre": item['name'],
+            "cantidad": item['quantity'],
+            "precio": item['price'],
+            "subtotal": item['price'] * item['quantity']
+        })
+    
+    user = User.find_by_email(user_email)
+    telefono = user.telefono if user else 'No registrado'
+    
+    data = {
+        "cliente_nombre": user_nombre,
+        "cliente_email": user_email,
+        "cliente_telefono": telefono,
+        "productos": productos_lista,
+        "total": total,
+        "estado": "Pendiente"
+    }
+    
+    try:
+        supabase.table("ventas_historial").insert(data).execute()
+        return True
+    except Exception as e:
+        print(f"Error guardando venta: {e}")
+        return False
+
+def concretar_venta(venta_id):
+    response = supabase.table("ventas_historial").select("*").eq("id", venta_id).execute()
+    if not response.data:
+        return False
+    
+    venta = response.data[0]
+    productos = venta['productos']
+    
+    for producto in productos:
+        prod_response = supabase.table("productos").select("*").eq("nombre", producto['nombre']).execute()
+        if prod_response.data:
+            prod_id = prod_response.data[0]['id']
+            nueva_cantidad = prod_response.data[0]['cantidad'] - producto['cantidad']
+            supabase.table("productos").update({"cantidad": nueva_cantidad}).eq("id", prod_id).execute()
+    
+    supabase.table("ventas").insert({
+        "cliente": venta['cliente_nombre'],
+        "total": venta['total'],
+        "abono": venta['total'],
+        "estado": "Completado",
+        "fecha_venta": venta['fecha']
+    }).execute()
+    
+    supabase.table("ventas_historial").update({"estado": "Concretada"}).eq("id", venta_id).execute()
+    return True
+
+def eliminar_venta_historial(venta_id):
+    supabase.table("ventas_historial").delete().eq("id", venta_id).execute()
+    return True
+
 # ========== RUTAS PÚBLICAS ==========
 @app.route('/')
 def index():
-    response = supabase.table("productos").select("*").gt("cantidad", 0).execute()
+    response = supabase.table("productos").select("*").execute()
     productos = response.data if response.data else []
     
     for p in productos:
@@ -224,9 +283,9 @@ def checkout():
     
     total = sum(item['price'] * item['quantity'] for item in cart_items.values())
     
-    # Enviar correo
+    guardar_venta_en_historial(current_user.email, current_user.nombre, cart_items, total)
+    
     if send_purchase_email(current_user.email, current_user.nombre, cart_items, total):
-        # Vaciar el carrito
         session.pop('cart', None)
         return render_template('checkout_success.html', mensaje="✅ ¡Compra realizada! Te hemos enviado un correo con los detalles.")
     else:
@@ -386,6 +445,27 @@ def admin_dashboard():
     response = supabase.table("productos").select("*").order("nombre").execute()
     productos = response.data if response.data else []
     return render_template('admin_dashboard.html', productos=productos)
+
+@app.route('/admin/ventas')
+@admin_required
+def admin_ventas():
+    response = supabase.table("ventas_historial").select("*").order("fecha", desc=True).execute()
+    ventas = response.data if response.data else []
+    return render_template('admin_ventas.html', ventas=ventas)
+
+@app.route('/admin/venta/concretar/<int:venta_id>')
+@admin_required
+def admin_venta_concretar(venta_id):
+    if concretar_venta(venta_id):
+        return redirect(url_for('admin_ventas'))
+    else:
+        return "Error al concretar la venta", 500
+
+@app.route('/admin/venta/eliminar/<int:venta_id>')
+@admin_required
+def admin_venta_eliminar(venta_id):
+    eliminar_venta_historial(venta_id)
+    return redirect(url_for('admin_ventas'))
 
 @app.route('/admin/producto/nuevo', methods=['GET', 'POST'])
 @admin_required
