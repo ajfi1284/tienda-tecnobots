@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="admin-container">
+    <h2>📋 Historial de ventas</h2>
+    
+    <div class="admin-nav">
+        <a href="{{ url_for('admin_dashboard') }}" class="admin-link">📦 Productos</a>
+        <a href="{{ url_for('admin_resumen') }}" class="admin-link">💰 Resumen</a>
+        <a href="{{ url_for('admin_ventas') }}" class="admin-link active">📋 Ventas</a>
+        <a href="{{ url_for('admin_logout') }}" class="admin-link">🚪 Salir</a>
+    </div>
+    
+    {% if ventas %}
+    <table class="ventas-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Productos</th>
+                <th>Total</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for venta in ventas %}
+            <tr class="venta-row" data-id="{{ venta.id }}">
+                <td>{{ venta.id }}</td>
+                <td>{{ venta.cliente_nombre }}</td>
+                <td>{{ venta.cliente_email }}</td>
+                <td>{{ venta.cliente_telefono }}</td>
+                <td>
+                    <button class="btn-ver-productos" data-id="{{ venta.id }}">👁️ Ver</button>
+                    <div id="productos-{{ venta.id }}" class="productos-detail" style="display:none;">
+                        {% for p in venta.productos %}
+                            <div>• {{ p.nombre }} x{{ p.cantidad }} = ${{ "%.2f"|format(p.subtotal) }}</div>
+                        {% endfor %}
+                    </div>
+                 </td>
+                <td>${{ "%.2f"|format(venta.total) }}</td>
+                <td>{{ venta.fecha[:10] }}</td>
+                <td>
+                    {% if venta.estado == 'Concretada' %}
+                        <span class="estado-concretada">✅ Concretada</span>
+                    {% else %}
+                        <span class="estado-pendiente">⏳ Pendiente</span>
+                    {% endif %}
+                 </td>
+                <td>
+                    {% if venta.estado != 'Concretada' %}
+                        <a href="{{ url_for('admin_venta_concretar', venta_id=venta.id) }}" class="btn-concretar" onclick="return confirm('¿Concretar esta venta? Se sumará al resumen y se descontará del inventario.')">✅ Concretar</a>
+                        <a href="{{ url_for('admin_venta_eliminar', venta_id=venta.id) }}" class="btn-eliminar" onclick="return confirm('¿Eliminar esta venta? No se harán cambios en el resumen ni inventario.')">🗑️ Eliminar</a>
+                    {% else %}
+                        <span class="sin-accion">---</span>
+                    {% endif %}
+                 </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-ventas">
+        <p>📭 No hay ventas registradas</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .admin-container {
+        max-width: 1400px;
+        margin: 30px auto;
+        padding: 20px;
+        background: white;
+        border-radius: 15px;
+    }
+    h2 {
+        color: #1f4e6e;
+        text-align: center;
+    }
+    .admin-nav {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin: 20px 0;
+    }
+    .admin-link {
+        background: #1f4e6e;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 25px;
+        text-decoration: none;
+    }
+    .admin-link.active {
+        background: #2c7da0;
+    }
+    .ventas-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    .ventas-table th, .ventas-table td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
+    .ventas-table th {
+        background: #1f4e6e;
+        color: white;
+    }
+    .btn-ver-productos {
+        background: #17a2b8;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 15px;
+        cursor: pointer;
+    }
+    .productos-detail {
+        background: #f8f9fa;
+        padding: 10px;
+        margin-top: 5px;
+        border-radius: 8px;
+    }
+    .estado-concretada {
+        color: green;
+        font-weight: bold;
+    }
+    .estado-pendiente {
+        color: orange;
+        font-weight: bold;
+    }
+    .btn-concretar {
+        background: #28a745;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        text-decoration: none;
+        font-size: 12px;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    .btn-eliminar {
+        background: #dc3545;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        text-decoration: none;
+        font-size: 12px;
+        display: inline-block;
+    }
+    .sin-accion {
+        color: #999;
+    }
+    .empty-ventas {
+        text-align: center;
+        padding: 40px;
+    }
+</style>
+
+<script>
+    document.querySelectorAll('.btn-ver-productos').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const div = document.getElementById(`productos-${id}`);
+            if (div.style.display === 'none') {
+                div.style.display = 'block';
+                this.textContent = '🙈 Ocultar';
+            } else {
+                div.style.display = 'none';
+                this.textContent = '👁️ Ver';
+            }
+        });
+    });
+</script>
+{% endblock %}
