@@ -8,6 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 from datetime import datetime
 import secrets
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -157,6 +158,22 @@ def send_purchase_email(user_email, user_nombre, cart_items, total):
     except Exception as e:
         print(f"Error enviando correo de compra: {e}")
         return False
+
+# ========== FUNCIONES DE FILTRO ==========
+def aplicar_filtro_fecha(query, mes, año):
+    """Aplica filtro de mes y año a una consulta de Supabase"""
+    if mes and mes != 'todos' and año and año != 'todos':
+        start_date = f"{año}-{mes.zfill(2)}-01"
+        if mes == '12':
+            end_date = f"{int(año)+1}-01-01"
+        else:
+            end_date = f"{año}-{int(mes)+1:02d}-01"
+        query = query.gte("fecha", start_date).lt("fecha", end_date)
+    elif año and año != 'todos':
+        start_date = f"{año}-01-01"
+        end_date = f"{int(año)+1}-01-01"
+        query = query.gte("fecha", start_date).lt("fecha", end_date)
+    return query
 
 # ========== VENTAS ==========
 def guardar_venta_en_historial(user_email, user_nombre, cart_items, total):
@@ -345,40 +362,39 @@ def logout():
 @app.route('/perfil', methods=['GET', 'POST'])
 @login_required
 def perfil():
+    mes = request.args.get('mes', 'todos')
+    año = request.args.get('año', 'todos')
+    
     if request.method == 'POST':
-        # Obtener datos del formulario
         nombre = request.form.get('nombre')
         apellido = request.form.get('apellido')
         telefono = request.form.get('telefono')
-        email = request.form.get('email')
         
         try:
-            # Actualizar datos en Supabase
             supabase.table("usuarios").update({
                 "nombre": nombre,
                 "apellido": apellido,
-                "telefono": telefono,
+                "telefono": telefono
             }).eq("id", current_user.id).execute()
             
-            # Actualizar el objeto current_user (opcional)
             current_user.nombre = nombre
             current_user.apellido = apellido
             current_user.telefono = telefono
-            current_user.email = email
             
             mensaje = "✅ Datos actualizados correctamente"
         except Exception as e:
             mensaje = f"❌ Error: {str(e)}"
-        
-        # Buscar compras del usuario
-        response = supabase.table("ventas_historial").select("*").eq("cliente_email", current_user.email).order("fecha", desc=True).execute()
-        compras = response.data if response.data else []
-        return render_template('perfil.html', user=current_user, compras=compras, mensaje=mensaje)
     
-    # GET: mostrar perfil
-    response = supabase.table("ventas_historial").select("*").eq("cliente_email", current_user.email).order("fecha", desc=True).execute()
+    query = supabase.table("ventas_historial").select("*").eq("cliente_email", current_user.email)
+    query = aplicar_filtro_fecha(query, mes, año)
+    response = query.order("fecha", desc=True).execute()
     compras = response.data if response.data else []
-    return render_template('perfil.html', user=current_user, compras=compras)
+    
+    años_response = supabase.table("ventas_historial").select("fecha").eq("cliente_email", current_user.email).execute()
+    años_disponibles = sorted(set([f['fecha'][:4] for f in años_response.data if f.get('fecha')]), reverse=True) if años_response.data else []
+    
+    return render_template('perfil.html', user=current_user, compras=compras, 
+                          mes_seleccionado=mes, año_seleccionado=año, años_disponibles=años_disponibles)
 
 # ========== RECUPERACIÓN DE CONTRASEÑA ==========
 @app.route('/recuperar', methods=['GET', 'POST'])
@@ -481,9 +497,19 @@ def admin_dashboard():
 @app.route('/admin/ventas')
 @admin_required
 def admin_ventas():
-    response = supabase.table("ventas_historial").select("*").order("fecha", desc=True).execute()
+    mes = request.args.get('mes', 'todos')
+    año = request.args.get('año', 'todos')
+    
+    query = supabase.table("ventas_historial").select("*")
+    query = aplicar_filtro_fecha(query, mes, año)
+    response = query.order("fecha", desc=True).execute()
     ventas = response.data if response.data else []
-    return render_template('admin_ventas.html', ventas=ventas)
+    
+    años_response = supabase.table("ventas_historial").select("fecha").execute()
+    años_disponibles = sorted(set([f['fecha'][:4] for f in años_response.data if f.get('fecha')]), reverse=True) if años_response.data else []
+    
+    return render_template('admin_ventas.html', ventas=ventas, 
+                          mes_seleccionado=mes, año_seleccionado=año, años_disponibles=años_disponibles)
 
 @app.route('/admin/venta/concretar/<int:venta_id>')
 @admin_required
