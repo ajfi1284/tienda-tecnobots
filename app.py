@@ -346,7 +346,10 @@ def logout():
 @app.route('/perfil')
 @login_required
 def perfil():
-    return render_template('perfil.html', user=current_user)
+    # Buscar compras del usuario logueado
+    response = supabase.table("ventas_historial").select("*").eq("cliente_email", current_user.email).order("fecha", desc=True).execute()
+    compras = response.data if response.data else []
+    return render_template('perfil.html', user=current_user, compras=compras)
 
 # ========== RECUPERACIÓN DE CONTRASEÑA ==========
 @app.route('/recuperar', methods=['GET', 'POST'])
