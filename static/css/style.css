@@ -19,7 +19,7 @@ body {
 header {
     background: #cce7ff;
     padding: 6px 0;
-    border-bottom: -10px solid #2c7da0;
+    border-bottom: 2px solid #2c7da0;
 }
 
 .header-container {
