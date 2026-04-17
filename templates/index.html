@@ -19,7 +19,13 @@
             {% endif %}
         </div>
         <h3>{{ producto.nombre }}</h3>
-        <p class="descripcion">{{ producto.descripcion[:100] }}{% if producto.descripcion|length > 100 %}...{% endif %}</p>
+        <p class="descripcion">
+            {% if producto.descripcion %}
+                {{ producto.descripcion[:100] }}{% if producto.descripcion|length > 100 %}...{% endif %}
+            {% else %}
+                <span class="sin-descripcion">Sin descripción</span>
+            {% endif %}
+        </p>
         <p class="price">${{ "%.2f"|format(producto.precio_venta) }}</p>
         {% if producto.cantidad == 0 %}
             <p class="stock stock-zero">Stock: 0</p>
