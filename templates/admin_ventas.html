@@ -11,6 +11,37 @@
         <a href="{{ url_for('admin_logout') }}" class="admin-link">🚪 Salir</a>
     </div>
     
+    <!-- Filtros -->
+    <div class="filtros">
+        <form method="GET" class="filtros-form">
+            <select name="mes">
+                <option value="todos" {% if mes_seleccionado == 'todos' %}selected{% endif %}>Todos los meses</option>
+                <option value="01" {% if mes_seleccionado == '01' %}selected{% endif %}>Enero</option>
+                <option value="02" {% if mes_seleccionado == '02' %}selected{% endif %}>Febrero</option>
+                <option value="03" {% if mes_seleccionado == '03' %}selected{% endif %}>Marzo</option>
+                <option value="04" {% if mes_seleccionado == '04' %}selected{% endif %}>Abril</option>
+                <option value="05" {% if mes_seleccionado == '05' %}selected{% endif %}>Mayo</option>
+                <option value="06" {% if mes_seleccionado == '06' %}selected{% endif %}>Junio</option>
+                <option value="07" {% if mes_seleccionado == '07' %}selected{% endif %}>Julio</option>
+                <option value="08" {% if mes_seleccionado == '08' %}selected{% endif %}>Agosto</option>
+                <option value="09" {% if mes_seleccionado == '09' %}selected{% endif %}>Septiembre</option>
+                <option value="10" {% if mes_seleccionado == '10' %}selected{% endif %}>Octubre</option>
+                <option value="11" {% if mes_seleccionado == '11' %}selected{% endif %}>Noviembre</option>
+                <option value="12" {% if mes_seleccionado == '12' %}selected{% endif %}>Diciembre</option>
+            </select>
+            
+            <select name="año">
+                <option value="todos" {% if año_seleccionado == 'todos' %}selected{% endif %}>Todos los años</option>
+                {% for año in años_disponibles %}
+                    <option value="{{ año }}" {% if año_seleccionado == año %}selected{% endif %}>{{ año }}</option>
+                {% endfor %}
+            </select>
+            
+            <button type="submit" class="btn-filtrar">🔍 Filtrar</button>
+            <a href="{{ url_for('admin_ventas') }}" class="btn-limpiar">🗑️ Limpiar</a>
+        </form>
+    </div>
+    
     {% if ventas %}
     <table class="ventas-table">
         <thead>
@@ -64,7 +95,7 @@
     </table>
     {% else %}
     <div class="empty-ventas">
-        <p>📭 No hay ventas registradas</p>
+        <p>📭 No hay ventas en el período seleccionado.</p>
     </div>
     {% endif %}
 </div>
@@ -96,6 +127,36 @@
     }
     .admin-link.active {
         background: #2c7da0;
+    }
+    .filtros {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+    .filtros-form {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .filtros-form select, .filtros-form button {
+        padding: 8px 15px;
+        border-radius: 25px;
+        border: 1px solid #ddd;
+    }
+    .btn-filtrar {
+        background: #1f4e6e;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-limpiar {
+        background: #6c757d;
+        color: white;
+        text-decoration: none;
+        padding: 8px 15px;
+        border-radius: 25px;
     }
     .ventas-table {
         width: 100%;
