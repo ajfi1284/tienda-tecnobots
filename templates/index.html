@@ -47,7 +47,7 @@
     {% endfor %}
 </div>
 
-<!-- Modal para zoom de imágenes (ya existente) -->
+<!-- Modal para zoom de imágenes -->
 <div id="imageModal" class="modal">
     <span class="close">&times;</span>
     <div class="modal-nav">
@@ -67,7 +67,7 @@
     </div>
 </div>
 
-<!-- Modal para detalle del producto (nuevo) -->
+<!-- Modal para detalle del producto -->
 <div id="productModal" class="modal-product">
     <div class="modal-product-content">
         <span class="close-product">&times;</span>
@@ -81,7 +81,7 @@
                 <p class="modal-product-price" id="modalProductPrice"></p>
                 <p class="modal-product-stock" id="modalProductStock"></p>
                 <p class="modal-product-desc" id="modalProductDesc"></p>
-                <form id="modalAddToCartForm" method="POST">
+                <form id="modalAddToCartForm" method="POST" action="{{ url_for('add_to_cart') }}">
                     <input type="hidden" name="product_id" id="modalProductId">
                     <input type="hidden" name="product_name" id="modalProductNameInput">
                     <input type="hidden" name="product_price" id="modalProductPriceInput">
@@ -127,7 +127,7 @@
     .miniatura {
         width: 60px;
         height: 60px;
-        object-fit: contain;
+        object-fit: cover;
         border-radius: 8px;
         cursor: pointer;
         border: 2px solid transparent;
@@ -439,12 +439,8 @@
     var currentImagesList = [];
     var currentZoom = 1;
     
-    // Variables para el modal de producto
-    var currentModalProductId = null;
-    
     // Función para cambiar imagen en la galería pequeña
     function cambiarImagen(productoId, nuevoIndice, imagenes) {
-        let imgElement = document.querySelector(`.product-main-img[data-id='${productoId}']`);
         let miniaturas = document.querySelectorAll(`.miniatura[data-id='${productoId}']`);
         
         if (miniaturas.length > 0 && imagenes && imagenes[nuevoIndice]) {
@@ -499,7 +495,6 @@
         var product = window.productosData[productId];
         if (!product) return;
         
-        currentModalProductId = productId;
         document.getElementById('modalProductName').innerText = product.nombre;
         document.getElementById('modalProductPrice').innerText = `$${product.precio.toFixed(2)}`;
         document.getElementById('modalProductStock').innerHTML = product.stock > 0 ? `✅ Stock disponible: ${product.stock}` : '❌ Agotado';
