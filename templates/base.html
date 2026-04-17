@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        /* Estilos para que el logo NO se corte */
         .header-container {
             display: flex;
             align-items: center;
@@ -26,13 +25,14 @@
             height: auto;
             object-fit: contain;
             display: block;
+            border-radius: 0 !important;
         }
         .brand {
             flex-shrink: 0;
         }
         .brand h1 {
-            letter-spacing: 20px;
-            font-size: 90px;
+            letter-spacing: 6px;
+            font-size: 28px;
             margin: 0;
             white-space: nowrap;
         }
@@ -42,11 +42,10 @@
             gap: 15px;
             flex-shrink: 0;
         }
-        /* Responsive para pantallas pequeñas */
         @media (max-width: 768px) {
             .brand h1 {
-                font-size: 24px;
-                letter-spacing: 5px;
+                font-size: 18px;
+                letter-spacing: 3px;
             }
             .logo img {
                 max-height: 50px;
@@ -79,18 +78,17 @@
                     </button>
                     <div class="dropdown-content">
                         {% if session.get('admin_logged') %}
-                            <a href="{{ url_for('admin_dashboard') }}">📦 Panel Admin</a>
-                            <a href="{{ url_for('admin_resumen') }}">💰 Resumen Financiero</a>
-                            <a href="{{ url_for('admin_ventas') }}">📋 Historial de Ventas</a>
+                            <a href="{{ url_for('cambiar_password') }}">🔐 Cambiar contraseña</a>
                             <a href="{{ url_for('admin_logout') }}">🚪 Cerrar sesión</a>
                         {% elif current_user.is_authenticated %}
                             <a href="{{ url_for('perfil') }}">👤 Mi perfil</a>
+                            <a href="{{ url_for('cambiar_password') }}">🔐 Cambiar contraseña</a>
                             <a href="{{ url_for('logout') }}">🚪 Cerrar sesión</a>
                         {% else %}
                             <a href="{{ url_for('login') }}">Iniciar sesión</a>
                             <a href="{{ url_for('register') }}">Registrarse</a>
+                            <a href="{{ url_for('admin_login') }}">🔐 Administración</a>
                         {% endif %}
-                        <a href="{{ url_for('admin_login') }}">🔐 Administración</a>
                     </div>
                 </div>
                 <div class="cart-icon">
