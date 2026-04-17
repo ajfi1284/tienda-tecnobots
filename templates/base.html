@@ -7,12 +7,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Estilos adicionales para el header */
+        .brand h1 {
+            letter-spacing: 20px;  /* Separación entre letras */
+            font-size: 90px;
+        }
+        .logo img {
+            max-height: 90px;
+            max-width: 200px;  /* Ancho máximo del logo */
+            width: auto;
+            height: auto;
+            object-fit: contain;
+        }
+    </style>
 </head>
 <body>
     <header>
         <div class="container header-container">
             <div class="logo">
-                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="TECNOBOTS" width="100">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="TECNOBOTS">
             </div>
             <div class="brand">
                 <h1>TECNOBOTS</h1>
