@@ -4,11 +4,33 @@
 <div class="perfil-container">
     <h2>👤 Mi Perfil</h2>
     
-    <div class="perfil-info">
-        <p><strong>Nombre:</strong> {{ current_user.nombre }} {{ current_user.apellido }}</p>
-        <p><strong>Email:</strong> {{ current_user.email }}</p>
-        <p><strong>Teléfono:</strong> {{ current_user.telefono }}</p>
-    </div>
+    {% if mensaje %}
+        <div class="mensaje-flotante">{{ mensaje }}</div>
+    {% endif %}
+    
+    <form method="POST" class="perfil-form">
+        <div class="form-group">
+            <label>Nombre</label>
+            <input type="text" name="nombre" value="{{ user.nombre }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Apellido</label>
+            <input type="text" name="apellido" value="{{ user.apellido }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" name="telefono" value="{{ user.telefono }}" required>
+        </div>
+        
+        <div class="form-group">
+            <label>Correo electrónico</label>
+            <input type="email" name="email" value="{{ user.email }}" required>
+        </div>
+        
+        <button type="submit" class="btn-guardar">💾 Guardar cambios</button>
+    </form>
     
     <div class="mis-compras">
         <h3>📋 Mis compras</h3>
@@ -75,18 +97,47 @@
     }
     h3 {
         color: #1f4e6e;
-        margin: 20px 0 15px 0;
+        margin: 30px 0 15px 0;
         border-bottom: 2px solid #1f4e6e;
         padding-bottom: 5px;
     }
-    .perfil-info {
+    .perfil-form {
         background: #f0f8ff;
-        padding: 15px;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    .form-group input {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 25px;
+        font-size: 1rem;
+    }
+    .btn-guardar {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+    .mensaje-flotante {
+        background: #d4edda;
+        color: #155724;
+        padding: 10px;
         border-radius: 10px;
         margin-bottom: 20px;
-    }
-    .perfil-info p {
-        margin: 8px 0;
+        text-align: center;
     }
     .compra-card {
         background: #f9f9f9;
@@ -124,7 +175,7 @@
         background: #f9f9f9;
         border-radius: 10px;
     }
-    .btn-shop {
+    .btn-shop, .btn-logout {
         display: inline-block;
         background: #1f4e6e;
         color: white;
@@ -134,16 +185,11 @@
         margin-top: 10px;
     }
     .btn-logout {
-        display: inline-block;
         background: #dc3545;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 25px;
-        text-decoration: none;
-        margin-top: 20px;
     }
     .perfil-actions {
         text-align: center;
+        margin-top: 20px;
     }
 </style>
 {% endblock %}
