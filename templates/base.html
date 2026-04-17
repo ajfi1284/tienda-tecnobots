@@ -29,9 +29,14 @@
                         {% endif %}
                     </button>
                     <div class="dropdown-content">
-                        {% if current_user.is_authenticated %}
-                            <a href="{{ url_for('perfil') }}">Mi perfil</a>
-                            <a href="{{ url_for('logout') }}">Cerrar sesión</a>
+                        {% if session.get('admin_logged') %}
+                            <a href="{{ url_for('admin_dashboard') }}">📦 Panel Admin</a>
+                            <a href="{{ url_for('admin_resumen') }}">💰 Resumen Financiero</a>
+                            <a href="{{ url_for('admin_ventas') }}">📋 Historial de Ventas</a>
+                            <a href="{{ url_for('admin_logout') }}">🚪 Cerrar sesión</a>
+                        {% elif current_user.is_authenticated %}
+                            <a href="{{ url_for('perfil') }}">👤 Mi perfil</a>
+                            <a href="{{ url_for('logout') }}">🚪 Cerrar sesión</a>
                         {% else %}
                             <a href="{{ url_for('login') }}">Iniciar sesión</a>
                             <a href="{{ url_for('register') }}">Registrarse</a>
@@ -64,7 +69,7 @@
                 <p>&copy; 2026 TECNOBOTS - Tecnología e innovación</p>
             </div>
             <div class="footer-contact">
-                <p>📞 +58 412-0702031</p>
+                <p>📞 +58 412-2031074</p>
                 <p>📧 tecnobotss2021@gmail.com</p>
                 <p>📱 WhatsApp: <a href="https://wa.me/584122031074" target="_blank">+58 412-2031074</a></p>
             </div>
