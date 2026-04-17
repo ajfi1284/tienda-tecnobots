@@ -8,17 +8,52 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        /* Estilos adicionales para el header */
-        .brand h1 {
-            letter-spacing: 20px;  /* Separación entre letras */
-            font-size: 90px;
+        /* Estilos para que el logo NO se corte */
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .logo {
+            flex-shrink: 0;
         }
         .logo img {
             max-height: 90px;
-            max-width: 200px;  /* Ancho máximo del logo */
+            max-width: 100%;
             width: auto;
             height: auto;
             object-fit: contain;
+            display: block;
+        }
+        .brand {
+            flex-shrink: 0;
+        }
+        .brand h1 {
+            letter-spacing: 20px;
+            font-size: 90px;
+            margin: 0;
+            white-space: nowrap;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-shrink: 0;
+        }
+        /* Responsive para pantallas pequeñas */
+        @media (max-width: 768px) {
+            .brand h1 {
+                font-size: 24px;
+                letter-spacing: 5px;
+            }
+            .logo img {
+                max-height: 50px;
+            }
+            .header-container {
+                gap: 8px;
+            }
         }
     </style>
 </head>
