@@ -9,28 +9,29 @@
     {% endif %}
     
     <form method="POST" class="perfil-form">
-        <div class="form-group">
-            <label>Nombre</label>
-            <input type="text" name="nombre" value="{{ user.nombre }}" required>
-        </div>
-        
-        <div class="form-group">
-            <label>Apellido</label>
-            <input type="text" name="apellido" value="{{ user.apellido }}" required>
-        </div>
-        
-        <div class="form-group">
-            <label>Teléfono</label>
-            <input type="text" name="telefono" value="{{ user.telefono }}" required>
-        </div>
-        
-        <div class="form-group">
-            <label>Correo electrónico</label>
-            <input type="email" name="email" value="{{ user.email }}" readonly disabled>
-        </div>
-        
-        <button type="submit" class="btn-guardar">💾 Guardar cambios</button>
-    </form>
+    <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" name="nombre" value="{{ user.nombre }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label>Apellido</label>
+        <input type="text" name="apellido" value="{{ user.apellido }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label>Teléfono</label>
+        <input type="text" name="telefono" value="{{ user.telefono }}" required>
+    </div>
+    
+    <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" name="email" value="{{ user.email }}" readonly disabled style="background:#f0f0f0; cursor:not-allowed;">
+        <small style="color:#666;">El correo no se puede cambiar porque está vinculado a tu historial de compras</small>
+    </div>
+    
+    <button type="submit" class="btn-guardar">💾 Guardar cambios</button>
+</form>
     
     <div class="mis-compras">
         <h3>📋 Mis compras</h3>
