@@ -63,6 +63,12 @@
             <h3>📈 Ventas del período</h3>
             <p class="resumen-valor">${{ "%.2f"|format(ventas_periodo) }}</p>
         </div>
+        
+        <div class="resumen-card total-card">
+            <h3>🏦 CAPITAL NETO</h3>
+            <p class="resumen-valor">${{ "%.2f"|format(capital_neto) }}</p>
+            <small>Efectivo + Créditos + Almacén + Nuevos + Mercancía</small>
+        </div>
     </div>
     
     <!-- Mini-módulos -->
@@ -252,6 +258,10 @@
         font-weight: bold;
         margin: 0;
     }
+    .total-card {
+        background: linear-gradient(135deg, #28a745, #1f6e1f);
+        grid-column: span 2;
+    }
     .mini-modulos {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -290,6 +300,9 @@
         }
         .resumen-grid {
             grid-template-columns: 1fr;
+        }
+        .total-card {
+            grid-column: span 1;
         }
     }
 </style>
