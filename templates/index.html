@@ -8,7 +8,7 @@
         <div class="product-image">
             {% set imagenes = producto.imagenes if producto.imagenes else [] %}
             {% if imagenes %}
-                <img src="{{ imagenes[0].imagen_url }}" alt="{{ producto.nombre }}" class="product-main-img" data-id="{{ producto.id }}" data-index="0">
+                <img src="{{ imagenes[0].imagen_url }}" alt="{{ producto.nombre }}" class="product-main-img" data-id="{{ producto.id }}" data-index="0" style="cursor: pointer;">
                 <div class="galeria-nav">
                     <button class="prev-btn" data-id="{{ producto.id }}" data-index="0">◀</button>
                     <span class="contador" data-id="{{ producto.id }}">1/{{ imagenes|length }}</span>
@@ -34,6 +34,19 @@
         {% endif %}
     </div>
     {% endfor %}
+</div>
+
+<!-- Modal para zoom de imágenes -->
+<div id="imageModal" class="modal">
+    <span class="close">&times;</span>
+    <div class="modal-content">
+        <img id="modalImage" class="modal-img">
+        <div class="zoom-controls">
+            <button id="zoomIn" class="zoom-btn">🔍 +</button>
+            <button id="zoomOut" class="zoom-btn">🔍 -</button>
+            <button id="resetZoom" class="zoom-btn">⟳ Restablecer</button>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -87,6 +100,8 @@
         width: 100%;
         height: 150px;
         object-fit: contain;
+        cursor: pointer;
+        transition: transform 0.2s;
     }
     .price {
         font-size: 1.2rem;
@@ -120,9 +135,69 @@
         width: 100%;
         cursor: not-allowed;
     }
+    
+    /* Modal styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.9);
+        overflow: auto;
+    }
+    .modal-content {
+        margin: auto;
+        display: block;
+        width: 80%;
+        max-width: 90%;
+        max-height: 80%;
+        margin-top: 5%;
+        text-align: center;
+    }
+    .modal-img {
+        width: auto;
+        max-width: 90%;
+        max-height: 70vh;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+        cursor: zoom-in;
+    }
+    .close {
+        position: absolute;
+        top: 20px;
+        right: 35px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .close:hover {
+        color: #bbb;
+    }
+    .zoom-controls {
+        text-align: center;
+        margin-top: 20px;
+    }
+    .zoom-btn {
+        background: #1f4e6e;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin: 0 10px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    .zoom-btn:hover {
+        background: #2c7da0;
+    }
 </style>
 
 <script>
+    // Datos de imágenes
     document.addEventListener('DOMContentLoaded', function() {
         window.imagenesData = {};
         {% for producto in productos %}
@@ -135,6 +210,7 @@
         {% endfor %}
     });
     
+    // Cambiar imagen en galería
     function cambiarImagen(productoId, nuevoIndice, imagenes) {
         let imgElement = document.querySelector(`.product-main-img[data-id='${productoId}']`);
         if (imgElement && imagenes && imagenes[nuevoIndice]) {
@@ -153,6 +229,7 @@
         }
     }
     
+    // Eventos de navegación de galería
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('next-btn')) {
             let productoId = parseInt(e.target.getAttribute('data-id'));
@@ -173,6 +250,52 @@
                 cambiarImagen(productoId, indiceActual - 1, imagenes);
             }
         }
+    });
+    
+    // Modal de zoom
+    var modal = document.getElementById('imageModal');
+    var modalImg = document.getElementById('modalImage');
+    var currentZoom = 1;
+    
+    function openModal(imgSrc) {
+        modal.style.display = 'block';
+        modalImg.src = imgSrc;
+        modalImg.style.transform = 'scale(1)';
+        currentZoom = 1;
+    }
+    
+    document.querySelectorAll('.product-main-img').forEach(img => {
+        img.addEventListener('click', function() {
+            openModal(this.src);
+        });
+    });
+    
+    document.querySelector('.close').addEventListener('click', function() {
+        modal.style.display = 'none';
+    });
+    
+    window.addEventListener('click', function(e) {
+        if (e.target == modal) {
+            modal.style.display = 'none';
+        }
+    });
+    
+    // Funciones de zoom
+    document.getElementById('zoomIn').addEventListener('click', function() {
+        currentZoom += 0.2;
+        modalImg.style.transform = `scale(${currentZoom})`;
+    });
+    
+    document.getElementById('zoomOut').addEventListener('click', function() {
+        if (currentZoom > 0.4) {
+            currentZoom -= 0.2;
+            modalImg.style.transform = `scale(${currentZoom})`;
+        }
+    });
+    
+    document.getElementById('resetZoom').addEventListener('click', function() {
+        currentZoom = 1;
+        modalImg.style.transform = 'scale(1)';
     });
 </script>
 {% endblock %}
