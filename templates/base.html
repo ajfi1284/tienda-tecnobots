@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
+        /* Estilos para que el logo NO se corte */
         .header-container {
             display: flex;
             align-items: center;
@@ -35,6 +36,8 @@
             font-size: 90px;
             margin: 0;
             white-space: nowrap;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
         .header-actions {
             display: flex;
@@ -42,10 +45,16 @@
             gap: 15px;
             flex-shrink: 0;
         }
+        header {
+            background: #cce7ff !important;
+            padding: 15px 0;
+            border-bottom: 2px solid #2c7da0;
+        }
+        /* Responsive para pantallas pequeñas */
         @media (max-width: 768px) {
             .brand h1 {
-                font-size: 18px;
-                letter-spacing: 3px;
+                font-size: 24px;
+                letter-spacing: 5px;
             }
             .logo img {
                 max-height: 50px;
@@ -78,7 +87,9 @@
                     </button>
                     <div class="dropdown-content">
                         {% if session.get('admin_logged') %}
-                            <a href="{{ url_for('cambiar_password') }}">🔐 Cambiar contraseña</a>
+                            <a href="{{ url_for('admin_dashboard') }}">📦 Productos</a>
+                            <a href="{{ url_for('admin_resumen') }}">💰 Resumen Financiero</a>
+                            <a href="{{ url_for('admin_ventas') }}">📋 Historial de Ventas</a>
                             <a href="{{ url_for('admin_logout') }}">🚪 Cerrar sesión</a>
                         {% elif current_user.is_authenticated %}
                             <a href="{{ url_for('perfil') }}">👤 Mi perfil</a>
