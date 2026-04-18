@@ -19,7 +19,7 @@
                         {% endif %}
                     {% endfor %}
                 </div>
-                <div class="galeria-nav" style="margin-top: 9px;">
+                <div class="galeria-nav" style="margin-top: 10px;">
                     <button class="prev-btn" data-id="{{ producto.id }}" data-index="0" onclick="event.stopPropagation()">◀</button>
                     <span class="contador" data-id="{{ producto.id }}">1/{{ imagenes|length }}</span>
                     <button class="next-btn" data-id="{{ producto.id }}" data-index="0" onclick="event.stopPropagation()">▶</button>
@@ -206,7 +206,6 @@
         width: 100%;
         cursor: not-allowed;
     }
-    
     .modal {
         display: none;
         position: fixed;
@@ -280,7 +279,6 @@
         cursor: pointer;
         font-size: 16px;
     }
-    
     .modal-product {
         display: none;
         position: fixed;
@@ -389,7 +387,6 @@
     .btn-add-modal:hover {
         background: #2c7da0;
     }
-    
     @media (max-width: 768px) {
         .modal-product-content {
             width: 95%;
@@ -460,13 +457,11 @@
         currentMediaList = window.imagenesData[productId] || [];
         currentMediaIndex = index;
         currentZoom = 1;
-        
         if (currentMediaList.length > 0) {
             var modalImg = document.getElementById('modalImage');
             var modalVideo = document.getElementById('modalVideo');
             var zoomControls = document.getElementById('zoomControls');
             var mediaItem = currentMediaList[currentMediaIndex];
-            
             if (mediaItem.es_video) {
                 modalImg.style.display = 'none';
                 modalVideo.style.display = 'block';
@@ -483,7 +478,6 @@
                 modalImg.style.transform = 'scale(1)';
             }
             document.getElementById('modalCounter').innerText = `${currentMediaIndex + 1}/${currentMediaList.length}`;
-            
             var modalPrev = document.getElementById('modalPrev');
             var modalNext = document.getElementById('modalNext');
             if (currentMediaList.length <= 1) {
@@ -500,7 +494,6 @@
     function openProductModal(productId) {
         var product = window.productosData[productId];
         if (!product) return;
-        
         document.getElementById('modalProductName').innerText = product.nombre;
         document.getElementById('modalProductPrice').innerText = `$${product.precio.toFixed(2)}`;
         document.getElementById('modalProductStock').innerHTML = product.stock > 0 ? `✅ Stock disponible: ${product.stock}` : '❌ Agotado';
@@ -508,7 +501,6 @@
         document.getElementById('modalProductId').value = product.nombre;
         document.getElementById('modalProductNameInput').value = product.nombre;
         document.getElementById('modalProductPriceInput').value = product.precio;
-        
         var mediaContainer = document.getElementById('modalProductMedia');
         if (product.media.length > 0) {
             var firstMedia = product.media[0];
@@ -518,7 +510,6 @@
                 mediaContainer.innerHTML = `<img src="${firstMedia.url}" class="modal-product-img">`;
             }
         }
-        
         var thumbsContainer = document.getElementById('modalProductThumbs');
         thumbsContainer.innerHTML = '';
         product.media.forEach((media, idx) => {
@@ -541,7 +532,6 @@
             };
             thumbsContainer.appendChild(thumbDiv);
         });
-        
         document.getElementById('productModal').style.display = 'block';
     }
     
@@ -555,7 +545,6 @@
                 cambiarMedia(productoId, indiceActual + 1, mediaList);
             }
         }
-        
         if (e.target.classList.contains('prev-btn')) {
             e.stopPropagation();
             let productoId = parseInt(e.target.getAttribute('data-id'));
@@ -565,7 +554,6 @@
                 cambiarMedia(productoId, indiceActual - 1, mediaList);
             }
         }
-        
         if (e.target.classList.contains('miniatura')) {
             e.stopPropagation();
             let productoId = parseInt(e.target.getAttribute('data-id'));
@@ -581,7 +569,6 @@
             var modalImg = document.getElementById('modalImage');
             var modalVideo = document.getElementById('modalVideo');
             var zoomControls = document.getElementById('zoomControls');
-            
             if (mediaItem.es_video) {
                 modalImg.style.display = 'none';
                 modalVideo.style.display = 'block';
@@ -608,7 +595,6 @@
             var modalImg = document.getElementById('modalImage');
             var modalVideo = document.getElementById('modalVideo');
             var zoomControls = document.getElementById('zoomControls');
-            
             if (mediaItem.es_video) {
                 modalImg.style.display = 'none';
                 modalVideo.style.display = 'block';
