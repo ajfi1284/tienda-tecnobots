@@ -437,51 +437,59 @@ def perfil():
                           mes_seleccionado=mes, año_seleccionado=año, años_disponibles=años_disponibles)
 
 @app.route('/cambiar-password', methods=['GET', 'POST'])
-@login_required
 def cambiar_password():
     global ADMIN_PASS
+    
+    # Verificar si es ADMIN o USUARIO NORMAL
+    is_admin = session.get('admin_logged', False)
+    is_user = current_user.is_authenticated
+    
+    if not is_admin and not is_user:
+        # No hay nadie logueado, redirigir según corresponda
+        return redirect(url_for('login'))
     
     if request.method == 'POST':
         current_password = request.form.get('current_password')
         new_password = request.form.get('new_password')
         confirm_password = request.form.get('confirm_password')
         
-        # Si es ADMIN (sesión de admin)
-        if session.get('admin_logged'):
+        # Si es ADMIN
+        if is_admin:
             # Verificar contraseña actual del admin
             if current_password != ADMIN_PASS:
-                return render_template('cambiar_password.html', error="❌ Contraseña actual incorrecta")
+                return render_template('cambiar_password.html', error="❌ Contraseña actual incorrecta", is_admin=True)
             
             if new_password != confirm_password:
-                return render_template('cambiar_password.html', error="❌ Las contraseñas nuevas no coinciden")
+                return render_template('cambiar_password.html', error="❌ Las contraseñas nuevas no coinciden", is_admin=True)
             
             if len(new_password) < 6:
-                return render_template('cambiar_password.html', error="❌ La contraseña debe tener al menos 6 caracteres")
+                return render_template('cambiar_password.html', error="❌ La contraseña debe tener al menos 6 caracteres", is_admin=True)
             
             # Guardar nueva contraseña en Supabase
             if guardar_admin_password(new_password):
                 ADMIN_PASS = new_password
-                return render_template('cambiar_password.html', success="✅ Contraseña de administrador actualizada correctamente")
+                return render_template('cambiar_password.html', success="✅ Contraseña de administrador actualizada correctamente", is_admin=True)
             else:
-                return render_template('cambiar_password.html', error="❌ Error al guardar la nueva contraseña")
+                return render_template('cambiar_password.html', error="❌ Error al guardar la nueva contraseña", is_admin=True)
         
         # Si es USUARIO NORMAL
-        elif current_user.is_authenticated:
+        elif is_user:
             if not current_user.check_password(current_password):
-                return render_template('cambiar_password.html', error="❌ Contraseña actual incorrecta")
+                return render_template('cambiar_password.html', error="❌ Contraseña actual incorrecta", is_admin=False)
             
             if new_password != confirm_password:
-                return render_template('cambiar_password.html', error="❌ Las contraseñas nuevas no coinciden")
+                return render_template('cambiar_password.html', error="❌ Las contraseñas nuevas no coinciden", is_admin=False)
             
             if len(new_password) < 6:
-                return render_template('cambiar_password.html', error="❌ La contraseña debe tener al menos 6 caracteres")
+                return render_template('cambiar_password.html', error="❌ La contraseña debe tener al menos 6 caracteres", is_admin=False)
             
             hashed = generate_password_hash(new_password)
             supabase.table("usuarios").update({"password": hashed}).eq("id", current_user.id).execute()
             
-            return render_template('cambiar_password.html', success="✅ Contraseña actualizada correctamente")
+            return render_template('cambiar_password.html', success="✅ Contraseña actualizada correctamente", is_admin=False)
     
-    return render_template('cambiar_password.html')
+    # Mostrar formulario
+    return render_template('cambiar_password.html', is_admin=is_admin)
 
 # ========== RECUPERACIÓN DE CONTRASEÑA ==========
 @app.route('/recuperar', methods=['GET', 'POST'])
