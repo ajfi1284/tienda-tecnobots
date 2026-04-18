@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        /* Estilos para que el logo NO se corte */
         .header-container {
             display: flex;
             align-items: center;
@@ -45,18 +44,11 @@
             gap: 15px;
             flex-shrink: 0;
         }
-        
-        /* HEADER AZUL GARANTIZADO */
         header {
             background: #cce7ff !important;
             padding: 15px 0;
             border-bottom: 2px solid #2c7da0;
         }
-        header .container {
-            background: transparent !important;
-        }
-        
-        /* Responsive para pantallas pequeñas */
         @media (max-width: 768px) {
             .brand h1 {
                 font-size: 24px;
