@@ -112,15 +112,15 @@
     }
     .miniaturas {
         display: flex;
-        gap: 8px;
+        gap: 5px;
         justify-content: center;
         margin-bottom: 10px;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        overflow-x: auto;
     }
-    /* MINIATURAS HORIZONTALES - FORZADO */
     .miniatura {
-        width: 70px !important;
-        height: 70px !important;
+        width: 55px !important;
+        height: 55px !important;
         object-fit: cover !important;
         object-position: center !important;
         border-radius: 8px;
