@@ -85,15 +85,16 @@
                     </button>
                     <div class="dropdown-content">
                         {% if session.get('admin_logged') %}
-                            <a href="{{ url_for('admin_dashboard') }}">📦 Productos</a>
-                            <a href="{{ url_for('admin_resumen') }}">💰 Resumen Financiero</a>
-                            <a href="{{ url_for('admin_ventas') }}">📋 Historial de Ventas</a>
+                            <!-- ADMINISTRADOR: solo cambio de contraseña y cerrar sesión -->
+                            <a href="{{ url_for('cambiar_password') }}">🔐 Cambiar contraseña</a>
                             <a href="{{ url_for('admin_logout') }}">🚪 Cerrar sesión</a>
                         {% elif current_user.is_authenticated %}
+                            <!-- USUARIO NORMAL -->
                             <a href="{{ url_for('perfil') }}">👤 Mi perfil</a>
                             <a href="{{ url_for('cambiar_password') }}">🔐 Cambiar contraseña</a>
                             <a href="{{ url_for('logout') }}">🚪 Cerrar sesión</a>
                         {% else %}
+                            <!-- NO LOGUEADO -->
                             <a href="{{ url_for('login') }}">Iniciar sesión</a>
                             <a href="{{ url_for('register') }}">Registrarse</a>
                             <a href="{{ url_for('admin_login') }}">🔐 Administración</a>
