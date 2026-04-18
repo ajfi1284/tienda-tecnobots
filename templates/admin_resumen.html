@@ -123,7 +123,7 @@
                     <tbody>
                         {% for gasto in gastos_lista %}
                         <tr>
-                            <td>{{ gasto.concepto }}</td>
+                            <td>{{ gasto.descripcion }}</td>
                             <td>${{ "%.2f"|format(gasto.monto) }}</td>
                             <td>{{ gasto.fecha[:10] }}</td>
                         </tr>
