@@ -402,7 +402,7 @@
         {% set imagenes = producto.imagenes if producto.imagenes else [] %}
         window.imagenesData[{{ producto.id }}] = [
             {% for img in imagenes %}
-                "{{ img.imagen_url }}",
+                { url: "{{ img.imagen_url }}", es_video: {{ img.es_video|lower }} },
             {% endfor %}
         ];
         window.productosData[{{ producto.id }}] = {
@@ -450,11 +450,32 @@
         currentImagesList = window.imagenesData[productId] || [];
         currentImageIndex = index;
         currentZoom = 1;
+    
         if (currentImagesList.length > 0) {
             var modalImg = document.getElementById('modalImage');
-            modalImg.src = currentImagesList[currentImageIndex];
-            modalImg.style.transform = 'scale(1)';
+            var modalVideo = document.getElementById('modalVideo');
+            var zoomControls = document.getElementById('zoomControls');
+            var mediaItem = currentImagesList[currentImageIndex];
+        
+            // Verificar si es video o imagen
+            if (mediaItem.es_video) {
+                modalImg.style.display = 'none';
+                modalVideo.style.display = 'block';
+                zoomControls.style.display = 'none';
+                var videoSource = document.getElementById('modalVideoSource');
+                videoSource.src = mediaItem.url;
+                modalVideo.load();
+                modalVideo.play();
+            } else {
+                modalImg.style.display = 'block';
+                modalVideo.style.display = 'none';
+                zoomControls.style.display = 'block';
+                modalImg.src = mediaItem.url;
+                modalImg.style.transform = 'scale(1)';
+            }
+        
             document.getElementById('modalCounter').innerText = `${currentImageIndex + 1}/${currentImagesList.length}`;
+        
             var modalPrev = document.getElementById('modalPrev');
             var modalNext = document.getElementById('modalNext');
             if (currentImagesList.length <= 1) {
