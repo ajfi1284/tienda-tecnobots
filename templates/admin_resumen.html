@@ -11,7 +11,7 @@
         <a href="{{ url_for('admin_logout') }}" class="admin-link">🚪 Cerrar sesión</a>
     </div>
     
-    <!-- Filtros por mes y año -->
+    <!-- Filtro principal -->
     <div class="filtros">
         <form method="GET" class="filtros-form">
             <select name="mes">
@@ -42,7 +42,7 @@
         </form>
     </div>
     
-    <!-- Tarjetas de resumen -->
+    <!-- Tarjetas principales -->
     <div class="resumen-grid">
         <div class="resumen-card">
             <h3>💰 Efectivo en caja</h3>
@@ -71,13 +71,20 @@
         </div>
     </div>
     
-    <!-- Mini-módulos -->
+    <!-- Título de movimientos -->
+    <div class="movimientos-header">
+        <h3>📋 MOVIMIENTOS</h3>
+    </div>
+    
+    <!-- Módulos adicionales (con su propio filtro - mismo que el principal) -->
     <div class="mini-modulos">
         <div class="modulo">
             <h3>📋 Ventas a crédito</h3>
             {% if creditos_lista %}
                 <table class="mini-table">
-                    <thead><tr><th>Cliente</th><th>Total</th><th>Abono</th><th>Pendiente</th><th>Fecha</th></tr></thead>
+                    <thead>
+                        <tr><th>Cliente</th><th>Total</th><th>Abono</th><th>Pendiente</th><th>Fecha</th></tr>
+                    </thead>
                     <tbody>
                         {% for credito in creditos_lista %}
                         <tr>
@@ -99,7 +106,9 @@
             <h3>🛒 Ventas del período</h3>
             {% if ventas_lista %}
                 <table class="mini-table">
-                    <thead><tr><th>Cliente</th><th>Total</th><th>Fecha</th></tr></thead>
+                    <thead>
+                        <tr><th>Cliente</th><th>Total</th><th>Fecha</th></tr>
+                    </thead>
                     <tbody>
                         {% for venta in ventas_lista %}
                         <tr>
@@ -119,7 +128,9 @@
             <h3>💸 Gastos recientes</h3>
             {% if gastos_lista %}
                 <table class="mini-table">
-                    <thead><tr><th>Concepto</th><th>Monto</th><th>Fecha</th></tr></thead>
+                    <thead>
+                        <tr><th>Concepto</th><th>Monto</th><th>Fecha</th></tr>
+                    </thead>
                     <tbody>
                         {% for gasto in gastos_lista %}
                         <tr>
@@ -139,7 +150,9 @@
             <h3>📦 Productos en almacén</h3>
             {% if almacen_lista %}
                 <table class="mini-table">
-                    <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio Venta</th></tr></thead>
+                    <thead>
+                        <tr><th>Producto</th><th>Cantidad</th><th>Precio Venta</th></tr>
+                    </thead>
                     <tbody>
                         {% for item in almacen_lista %}
                         <tr>
@@ -159,7 +172,9 @@
             <h3>🆕 Productos nuevos pendientes</h3>
             {% if nuevos_lista %}
                 <table class="mini-table">
-                    <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio Venta</th></tr></thead>
+                    <thead>
+                        <tr><th>Producto</th><th>Cantidad</th><th>Precio Venta</th></tr>
+                    </thead>
                     <tbody>
                         {% for item in nuevos_lista %}
                         <tr>
@@ -261,6 +276,14 @@
     .total-card {
         background: linear-gradient(135deg, #28a745, #1f6e1f);
         grid-column: span 2;
+    }
+    .movimientos-header {
+        margin: 30px 0 20px 0;
+        border-bottom: 2px solid #1f4e6e;
+    }
+    .movimientos-header h3 {
+        color: #1f4e6e;
+        font-size: 1.5rem;
     }
     .mini-modulos {
         display: grid;
