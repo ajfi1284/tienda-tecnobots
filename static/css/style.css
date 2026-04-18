@@ -6,7 +6,9 @@
 
 body {
     font-family: 'Poppins', 'Segoe UI', sans-serif;
-    background: #ffffff;
+    background: radial-gradient(circle at 10% 20%, rgba(44,125,160,0.08) 1px, transparent 1px);
+    background-size: 25px 25px;
+    background-color: #f0f2f5;
     color: #1a2a3a;
 }
 
