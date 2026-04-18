@@ -627,6 +627,8 @@ def admin_venta_eliminar(venta_id):
 
 @app.route('/admin/producto/nuevo', methods=['GET', 'POST'])
 @admin_required
+@app.route('/admin/producto/nuevo', methods=['GET', 'POST'])
+@admin_required
 def admin_producto_nuevo():
     if request.method == 'POST':
         nombre = request.form.get('nombre')
@@ -651,6 +653,7 @@ def admin_producto_nuevo():
         result = supabase.table("productos").insert(data).execute()
         producto_id = result.data[0]["id"]
         
+        # Subir imágenes y videos
         if 'imagenes' in request.files:
             archivos = request.files.getlist('imagenes')
             orden = 0
@@ -660,21 +663,21 @@ def admin_producto_nuevo():
                     filename = f"{uuid.uuid4()}.{ext}"
                     file_data = archivo.read()
                     supabase.storage.from_('productos').upload(f"productos/{filename}", file_data)
-                    imagen_url = supabase.storage.from_('productos').get_public_url(f"productos/{filename}")
+                    url = supabase.storage.from_('productos').get_public_url(f"productos/{filename}")
+                    
+                    # Detectar si es video
+                    es_video = ext in ['mp4', 'webm', 'mov', 'avi', 'mkv']
                     
                     supabase.table("productos_imagenes").insert({
                         "producto_id": producto_id,
-                        "imagen_url": imagen_url,
-                        "orden": orden
+                        "imagen_url": url,
+                        "orden": orden,
+                        "es_video": es_video
                     }).execute()
                     orden += 1
         
         return redirect(url_for('admin_dashboard'))
     return render_template('admin_producto_form.html', producto=None, imagenes=[])
-
-@app.route('/admin/producto/editar/<int:id>', methods=['GET', 'POST'])
-@admin_required
-def admin_producto_editar(id):
     res = supabase.table("productos").select("*").eq("id", id).execute()
     if not res.data:
         return redirect(url_for('admin_dashboard'))
@@ -707,21 +710,25 @@ def admin_producto_editar(id):
         
         if 'imagenes' in request.files:
             archivos = request.files.getlist('imagenes')
-            orden_actual = len(imagenes_existentes)
+            orden = 0
             for archivo in archivos:
                 if archivo.filename != '':
                     ext = archivo.filename.rsplit('.', 1)[1].lower()
                     filename = f"{uuid.uuid4()}.{ext}"
                     file_data = archivo.read()
                     supabase.storage.from_('productos').upload(f"productos/{filename}", file_data)
-                    imagen_url = supabase.storage.from_('productos').get_public_url(f"productos/{filename}")
-                    
+                    url = supabase.storage.from_('productos').get_public_url(f"productos/{filename}")
+            
+                    # Detectar si es video
+                    es_video = ext in ['mp4', 'webm', 'mov', 'avi', 'mkv']
+            
                     supabase.table("productos_imagenes").insert({
-                        "producto_id": id,
-                        "imagen_url": imagen_url,
-                        "orden": orden_actual
+                        "producto_id": producto_id,
+                        "imagen_url": url,
+                        "orden": orden,
+                        "es_video": es_video
                     }).execute()
-                    orden_actual += 1
+                    orden += 1
         
         return redirect(url_for('admin_dashboard'))
     
