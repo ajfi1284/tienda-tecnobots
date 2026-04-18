@@ -10,7 +10,13 @@
             {% if imagenes %}
                 <div class="miniaturas">
                     {% for img in imagenes[:4] %}
-                        <img src="{{ img.imagen_url }}" alt="{{ producto.nombre }}" class="miniatura" data-img="{{ img.imagen_url }}" data-index="{{ loop.index0 }}" data-id="{{ producto.id }}" onclick="event.stopPropagation(); openImageModal({{ producto.id }}, {{ loop.index0 }})">
+                        {% if img.es_video %}
+                            <video class="miniatura" data-id="{{ producto.id }}" data-index="{{ loop.index0 }}" muted playsinline style="width:55px; height:55px; object-fit:cover; pointer-events:none;">
+                                <source src="{{ img.imagen_url }}" type="video/mp4">
+                            </video>
+                        {% else %}
+                            <img src="{{ img.imagen_url }}" alt="{{ producto.nombre }}" class="miniatura" data-img="{{ img.imagen_url }}" data-index="{{ loop.index0 }}" data-id="{{ producto.id }}">
+                        {% endif %}
                     {% endfor %}
                 </div>
                 <div class="galeria-nav" style="margin-top: 10px;">
@@ -40,20 +46,23 @@
     {% endfor %}
 </div>
 
-<!-- Modal para zoom de imágenes -->
+<!-- Modal para zoom de imágenes/videos -->
 <div id="imageModal" class="modal">
     <span class="close">&times;</span>
     <div class="modal-nav">
         <button class="modal-prev" id="modalPrev">◀</button>
         <div class="modal-content">
-            <img id="modalImage" class="modal-img">
+            <img id="modalImage" class="modal-img" style="display:none;">
+            <video id="modalVideo" class="modal-video" controls autoplay style="display:none; max-width:70vw; max-height:70vh;">
+                <source id="modalVideoSource" src="">
+            </video>
         </div>
         <button class="modal-next" id="modalNext">▶</button>
     </div>
     <div class="modal-counter">
         <span id="modalCounter">1/1</span>
     </div>
-    <div class="zoom-controls">
+    <div class="zoom-controls" id="zoomControls">
         <button id="zoomIn" class="zoom-btn">🔍 +</button>
         <button id="zoomOut" class="zoom-btn">🔍 -</button>
         <button id="resetZoom" class="zoom-btn">⟳ Restablecer</button>
@@ -66,7 +75,7 @@
         <span class="close-product">&times;</span>
         <div class="modal-product-body">
             <div class="modal-product-images">
-                <img id="modalProductImage" class="modal-product-img" src="">
+                <div id="modalProductMedia"></div>
                 <div id="modalProductThumbs" class="modal-thumbs"></div>
             </div>
             <div class="modal-product-info">
@@ -198,7 +207,7 @@
         cursor: not-allowed;
     }
     
-    /* Modal de imagen (zoom) */
+    /* Modal de imagen/video */
     .modal {
         display: none;
         position: fixed;
@@ -220,12 +229,10 @@
         margin: 0 20px;
         text-align: center;
     }
-    .modal-img {
+    .modal-img, .modal-video {
         max-width: 70vw;
         max-height: 70vh;
         object-fit: contain;
-        transition: transform 0.3s ease;
-        cursor: zoom-in;
     }
     .modal-prev, .modal-next {
         background: rgba(255,255,255,0.3);
@@ -325,6 +332,11 @@
         object-fit: contain;
         border-radius: 10px;
     }
+    .modal-product-video {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 10px;
+    }
     .modal-thumbs {
         display: flex;
         gap: 10px;
@@ -402,7 +414,7 @@
         {% set imagenes = producto.imagenes if producto.imagenes else [] %}
         window.imagenesData[{{ producto.id }}] = [
             {% for img in imagenes %}
-                "{{ img.imagen_url }}",
+                { url: "{{ img.imagen_url }}", es_video: {{ img.es_video|lower }} },
             {% endfor %}
         ];
         window.productosData[{{ producto.id }}] = {
@@ -411,22 +423,22 @@
             precio: {{ producto.precio_venta }},
             stock: {{ producto.cantidad }},
             descripcion: `{{ producto.descripcion|replace('\\n', ' ')|replace('"', '\\"')|safe if producto.descripcion else '' }}`,
-            imagenes: [
+            media: [
                 {% for img in imagenes %}
-                    "{{ img.imagen_url }}",
+                    { url: "{{ img.imagen_url }}", es_video: {{ img.es_video|lower }} },
                 {% endfor %}
             ]
         };
     {% endfor %}
     
     var currentProductId = null;
-    var currentImageIndex = 0;
-    var currentImagesList = [];
+    var currentMediaIndex = 0;
+    var currentMediaList = [];
     var currentZoom = 1;
     
-    function cambiarImagen(productoId, nuevoIndice, imagenes) {
+    function cambiarMedia(productoId, nuevoIndice, mediaList) {
         let miniaturas = document.querySelectorAll(`.miniatura[data-id='${productoId}']`);
-        if (miniaturas.length > 0 && imagenes && imagenes[nuevoIndice]) {
+        if (miniaturas.length > 0 && mediaList && mediaList[nuevoIndice]) {
             miniaturas.forEach((thumb, idx) => {
                 if (idx === nuevoIndice) {
                     thumb.style.borderColor = '#1f4e6e';
@@ -436,7 +448,7 @@
             });
             let contador = document.querySelector(`.contador[data-id='${productoId}']`);
             if (contador) {
-                contador.innerText = `${nuevoIndice + 1}/${imagenes.length}`;
+                contador.innerText = `${nuevoIndice + 1}/${mediaList.length}`;
             }
             let prevBtn = document.querySelector(`.prev-btn[data-id='${productoId}']`);
             let nextBtn = document.querySelector(`.next-btn[data-id='${productoId}']`);
@@ -445,19 +457,38 @@
         }
     }
     
-    function openImageModal(productId, index) {
+    function openMediaModal(productId, index) {
         currentProductId = productId;
-        currentImagesList = window.imagenesData[productId] || [];
-        currentImageIndex = index;
+        currentMediaList = window.imagenesData[productId] || [];
+        currentMediaIndex = index;
         currentZoom = 1;
-        if (currentImagesList.length > 0) {
+        
+        if (currentMediaList.length > 0) {
             var modalImg = document.getElementById('modalImage');
-            modalImg.src = currentImagesList[currentImageIndex];
-            modalImg.style.transform = 'scale(1)';
-            document.getElementById('modalCounter').innerText = `${currentImageIndex + 1}/${currentImagesList.length}`;
+            var modalVideo = document.getElementById('modalVideo');
+            var zoomControls = document.getElementById('zoomControls');
+            var mediaItem = currentMediaList[currentMediaIndex];
+            
+            if (mediaItem.es_video) {
+                modalImg.style.display = 'none';
+                modalVideo.style.display = 'block';
+                zoomControls.style.display = 'none';
+                var videoSource = document.getElementById('modalVideoSource');
+                videoSource.src = mediaItem.url;
+                modalVideo.load();
+                modalVideo.play();
+            } else {
+                modalImg.style.display = 'block';
+                modalVideo.style.display = 'none';
+                zoomControls.style.display = 'block';
+                modalImg.src = mediaItem.url;
+                modalImg.style.transform = 'scale(1)';
+            }
+            document.getElementById('modalCounter').innerText = `${currentMediaIndex + 1}/${currentMediaList.length}`;
+            
             var modalPrev = document.getElementById('modalPrev');
             var modalNext = document.getElementById('modalNext');
-            if (currentImagesList.length <= 1) {
+            if (currentMediaList.length <= 1) {
                 modalPrev.style.display = 'none';
                 modalNext.style.display = 'none';
             } else {
@@ -471,6 +502,7 @@
     function openProductModal(productId) {
         var product = window.productosData[productId];
         if (!product) return;
+        
         document.getElementById('modalProductName').innerText = product.nombre;
         document.getElementById('modalProductPrice').innerText = `$${product.precio.toFixed(2)}`;
         document.getElementById('modalProductStock').innerHTML = product.stock > 0 ? `✅ Stock disponible: ${product.stock}` : '❌ Agotado';
@@ -478,23 +510,41 @@
         document.getElementById('modalProductId').value = product.nombre;
         document.getElementById('modalProductNameInput').value = product.nombre;
         document.getElementById('modalProductPriceInput').value = product.precio;
-        if (product.imagenes.length > 0) {
-            document.getElementById('modalProductImage').src = product.imagenes[0];
+        
+        // Mostrar primer media
+        var mediaContainer = document.getElementById('modalProductMedia');
+        if (product.media.length > 0) {
+            var firstMedia = product.media[0];
+            if (firstMedia.es_video) {
+                mediaContainer.innerHTML = `<video controls autoplay class="modal-product-video" style="max-width:100%; max-height:300px;"><source src="${firstMedia.url}" type="video/mp4"></video>`;
+            } else {
+                mediaContainer.innerHTML = `<img src="${firstMedia.url}" class="modal-product-img">`;
+            }
         }
+        
+        // Mostrar miniaturas
         var thumbsContainer = document.getElementById('modalProductThumbs');
         thumbsContainer.innerHTML = '';
-        product.imagenes.forEach((img, idx) => {
-            var thumb = document.createElement('img');
-            thumb.src = img;
-            thumb.classList.add('modal-thumb');
-            if (idx === 0) thumb.classList.add('active');
+        product.media.forEach((media, idx) => {
+            var thumb = document.createElement('div');
+            if (media.es_video) {
+                thumb.innerHTML = `<video class="modal-thumb" muted playsinline style="width:60px; height:60px; object-fit:cover;"><source src="${media.url}" type="video/mp4"></video>`;
+            } else {
+                thumb.innerHTML = `<img src="${media.url}" class="modal-thumb">`;
+            }
+            if (idx === 0) thumb.querySelector('img, video').classList.add('active');
             thumb.onclick = function() {
-                document.getElementById('modalProductImage').src = img;
+                if (media.es_video) {
+                    mediaContainer.innerHTML = `<video controls autoplay class="modal-product-video" style="max-width:100%; max-height:300px;"><source src="${media.url}" type="video/mp4"></video>`;
+                } else {
+                    mediaContainer.innerHTML = `<img src="${media.url}" class="modal-product-img">`;
+                }
                 document.querySelectorAll('.modal-thumb').forEach(t => t.classList.remove('active'));
-                thumb.classList.add('active');
+                thumb.querySelector('img, video').classList.add('active');
             };
             thumbsContainer.appendChild(thumb);
         });
+        
         document.getElementById('productModal').style.display = 'block';
     }
     
@@ -504,9 +554,9 @@
             e.stopPropagation();
             let productoId = parseInt(e.target.getAttribute('data-id'));
             let indiceActual = parseInt(e.target.getAttribute('data-index'));
-            let imagenes = window.imagenesData[productoId];
-            if (imagenes && indiceActual + 1 < imagenes.length) {
-                cambiarImagen(productoId, indiceActual + 1, imagenes);
+            let mediaList = window.imagenesData[productoId];
+            if (mediaList && indiceActual + 1 < mediaList.length) {
+                cambiarMedia(productoId, indiceActual + 1, mediaList);
             }
         }
         
@@ -514,9 +564,9 @@
             e.stopPropagation();
             let productoId = parseInt(e.target.getAttribute('data-id'));
             let indiceActual = parseInt(e.target.getAttribute('data-index'));
-            let imagenes = window.imagenesData[productoId];
-            if (imagenes && indiceActual - 1 >= 0) {
-                cambiarImagen(productoId, indiceActual - 1, imagenes);
+            let mediaList = window.imagenesData[productoId];
+            if (mediaList && indiceActual - 1 >= 0) {
+                cambiarMedia(productoId, indiceActual - 1, mediaList);
             }
         }
         
@@ -524,60 +574,108 @@
             e.stopPropagation();
             let productoId = parseInt(e.target.getAttribute('data-id'));
             let index = parseInt(e.target.getAttribute('data-index'));
-            openImageModal(productoId, index);
+            openMediaModal(productoId, index);
         }
     });
     
+    // Eventos del modal
     document.getElementById('modalPrev').addEventListener('click', function() {
-        if (currentImagesList.length > 0 && currentImageIndex - 1 >= 0) {
-            currentImageIndex--;
-            document.getElementById('modalImage').src = currentImagesList[currentImageIndex];
-            document.getElementById('modalImage').style.transform = 'scale(1)';
-            currentZoom = 1;
-            document.getElementById('modalCounter').innerText = `${currentImageIndex + 1}/${currentImagesList.length}`;
+        if (currentMediaList.length > 0 && currentMediaIndex - 1 >= 0) {
+            currentMediaIndex--;
+            var mediaItem = currentMediaList[currentMediaIndex];
+            var modalImg = document.getElementById('modalImage');
+            var modalVideo = document.getElementById('modalVideo');
+            var zoomControls = document.getElementById('zoomControls');
+            
+            if (mediaItem.es_video) {
+                modalImg.style.display = 'none';
+                modalVideo.style.display = 'block';
+                zoomControls.style.display = 'none';
+                document.getElementById('modalVideoSource').src = mediaItem.url;
+                modalVideo.load();
+                modalVideo.play();
+            } else {
+                modalImg.style.display = 'block';
+                modalVideo.style.display = 'none';
+                zoomControls.style.display = 'block';
+                modalImg.src = mediaItem.url;
+                modalImg.style.transform = 'scale(1)';
+                currentZoom = 1;
+            }
+            document.getElementById('modalCounter').innerText = `${currentMediaIndex + 1}/${currentMediaList.length}`;
         }
     });
+    
     document.getElementById('modalNext').addEventListener('click', function() {
-        if (currentImagesList.length > 0 && currentImageIndex + 1 < currentImagesList.length) {
-            currentImageIndex++;
-            document.getElementById('modalImage').src = currentImagesList[currentImageIndex];
-            document.getElementById('modalImage').style.transform = 'scale(1)';
-            currentZoom = 1;
-            document.getElementById('modalCounter').innerText = `${currentImageIndex + 1}/${currentImagesList.length}`;
+        if (currentMediaList.length > 0 && currentMediaIndex + 1 < currentMediaList.length) {
+            currentMediaIndex++;
+            var mediaItem = currentMediaList[currentMediaIndex];
+            var modalImg = document.getElementById('modalImage');
+            var modalVideo = document.getElementById('modalVideo');
+            var zoomControls = document.getElementById('zoomControls');
+            
+            if (mediaItem.es_video) {
+                modalImg.style.display = 'none';
+                modalVideo.style.display = 'block';
+                zoomControls.style.display = 'none';
+                document.getElementById('modalVideoSource').src = mediaItem.url;
+                modalVideo.load();
+                modalVideo.play();
+            } else {
+                modalImg.style.display = 'block';
+                modalVideo.style.display = 'none';
+                zoomControls.style.display = 'block';
+                modalImg.src = mediaItem.url;
+                modalImg.style.transform = 'scale(1)';
+                currentZoom = 1;
+            }
+            document.getElementById('modalCounter').innerText = `${currentMediaIndex + 1}/${currentMediaList.length}`;
         }
     });
+    
     document.querySelector('.close').addEventListener('click', function() {
         document.getElementById('imageModal').style.display = 'none';
+        var modalVideo = document.getElementById('modalVideo');
+        modalVideo.pause();
     });
+    
     window.addEventListener('click', function(e) {
         if (e.target == document.getElementById('imageModal')) {
             document.getElementById('imageModal').style.display = 'none';
+            var modalVideo = document.getElementById('modalVideo');
+            modalVideo.pause();
         }
         if (e.target == document.getElementById('productModal')) {
             document.getElementById('productModal').style.display = 'none';
         }
     });
+    
+    // Zoom (solo para imágenes)
     document.getElementById('zoomIn').addEventListener('click', function() {
         currentZoom += 0.2;
         document.getElementById('modalImage').style.transform = `scale(${currentZoom})`;
     });
+    
     document.getElementById('zoomOut').addEventListener('click', function() {
         if (currentZoom > 0.4) {
             currentZoom -= 0.2;
             document.getElementById('modalImage').style.transform = `scale(${currentZoom})`;
         }
     });
+    
     document.getElementById('resetZoom').addEventListener('click', function() {
         currentZoom = 1;
         document.getElementById('modalImage').style.transform = 'scale(1)';
     });
+    
     document.querySelector('.close-product').addEventListener('click', function() {
         document.getElementById('productModal').style.display = 'none';
     });
+    
     document.querySelectorAll('.product-card').forEach(card => {
         let productId = card.getAttribute('data-producto-id');
-        let imagenes = window.imagenesData[productId];
-        if (imagenes && imagenes.length > 0) {
+        let mediaList = window.imagenesData[productId];
+        if (mediaList && mediaList.length > 0) {
             let primeraMiniatura = card.querySelector('.miniatura');
             if (primeraMiniatura) {
                 primeraMiniatura.style.borderColor = '#1f4e6e';
