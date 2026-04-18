@@ -117,14 +117,12 @@
         gap: 5px;
         justify-content: center;
         margin-bottom: 10px;
-        flex-wrap: nowrap;
-        overflow-x: auto;
+        flex-wrap: wrap;
     }
     .miniatura {
-        width: 55px !important;
-        height: 55px !important;
-        object-fit: cover !important;
-        object-position: center !important;
+        width: 70px;
+        height: 70px;
+        object-fit: contain;
         border-radius: 8px;
         cursor: pointer;
         border: 2px solid transparent;
@@ -198,7 +196,6 @@
         cursor: not-allowed;
     }
     
-    /* Modal de imagen (zoom) */
     .modal {
         display: none;
         position: fixed;
@@ -275,7 +272,6 @@
         font-size: 16px;
     }
     
-    /* Modal de producto (detalle) */
     .modal-product {
         display: none;
         position: fixed;
@@ -335,10 +331,11 @@
     .modal-thumb {
         width: 60px;
         height: 60px;
-        object-fit: cover;
+        object-fit: contain;
         border-radius: 8px;
         cursor: pointer;
         border: 2px solid transparent;
+        background: #f0f0f0;
     }
     .modal-thumb:hover, .modal-thumb.active {
         border-color: #1f4e6e;
@@ -389,8 +386,8 @@
             flex-direction: column;
         }
         .miniatura {
-            width: 50px !important;
-            height: 50px !important;
+            width: 50px;
+            height: 50px;
         }
     }
 </style>
@@ -402,7 +399,7 @@
         {% set imagenes = producto.imagenes if producto.imagenes else [] %}
         window.imagenesData[{{ producto.id }}] = [
             {% for img in imagenes %}
-                { url: "{{ img.imagen_url }}", es_video: {{ img.es_video|lower }} },
+                "{{ img.imagen_url }}",
             {% endfor %}
         ];
         window.productosData[{{ producto.id }}] = {
@@ -450,32 +447,11 @@
         currentImagesList = window.imagenesData[productId] || [];
         currentImageIndex = index;
         currentZoom = 1;
-    
         if (currentImagesList.length > 0) {
             var modalImg = document.getElementById('modalImage');
-            var modalVideo = document.getElementById('modalVideo');
-            var zoomControls = document.getElementById('zoomControls');
-            var mediaItem = currentImagesList[currentImageIndex];
-        
-            // Verificar si es video o imagen
-            if (mediaItem.es_video) {
-                modalImg.style.display = 'none';
-                modalVideo.style.display = 'block';
-                zoomControls.style.display = 'none';
-                var videoSource = document.getElementById('modalVideoSource');
-                videoSource.src = mediaItem.url;
-                modalVideo.load();
-                modalVideo.play();
-            } else {
-                modalImg.style.display = 'block';
-                modalVideo.style.display = 'none';
-                zoomControls.style.display = 'block';
-                modalImg.src = mediaItem.url;
-                modalImg.style.transform = 'scale(1)';
-            }
-        
+            modalImg.src = currentImagesList[currentImageIndex];
+            modalImg.style.transform = 'scale(1)';
             document.getElementById('modalCounter').innerText = `${currentImageIndex + 1}/${currentImagesList.length}`;
-        
             var modalPrev = document.getElementById('modalPrev');
             var modalNext = document.getElementById('modalNext');
             if (currentImagesList.length <= 1) {
@@ -519,7 +495,6 @@
         document.getElementById('productModal').style.display = 'block';
     }
     
-    // Eventos de navegación en galería pequeña
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('next-btn')) {
             e.stopPropagation();
