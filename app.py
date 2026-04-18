@@ -26,6 +26,31 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+# ========== CONFIGURACIÓN DE ADMIN ==========
+def cargar_admin_password():
+    """Carga la contraseña del administrador desde Supabase"""
+    try:
+        response = supabase.table("configuracion").select("valor").eq("clave", "admin_password").execute()
+        if response.data:
+            return response.data[0]['valor']
+        else:
+            # Si no existe, crear con valor por defecto
+            supabase.table("configuracion").insert({"clave": "admin_password", "valor": "TECNO2024"}).execute()
+            return "TECNO2024"
+    except:
+        return "TECNO2024"
+
+def guardar_admin_password(nueva_password):
+    """Guarda la nueva contraseña del administrador en Supabase"""
+    try:
+        supabase.table("configuracion").update({"valor": nueva_password}).eq("clave", "admin_password").execute()
+        return True
+    except:
+        return False
+
+ADMIN_USER = "TECNOBOTS"
+ADMIN_PASS = cargar_admin_password()
+
 # ========== MODELO DE USUARIO ==========
 class User(UserMixin):
     def __init__(self, user_data):
@@ -414,24 +439,47 @@ def perfil():
 @app.route('/cambiar-password', methods=['GET', 'POST'])
 @login_required
 def cambiar_password():
+    global ADMIN_PASS
+    
     if request.method == 'POST':
         current_password = request.form.get('current_password')
         new_password = request.form.get('new_password')
         confirm_password = request.form.get('confirm_password')
         
-        if not current_user.check_password(current_password):
-            return render_template('cambiar_password.html', error="❌ Contraseña actual incorrecta")
+        # Si es ADMIN (sesión de admin)
+        if session.get('admin_logged'):
+            # Verificar contraseña actual del admin
+            if current_password != ADMIN_PASS:
+                return render_template('cambiar_password.html', error="❌ Contraseña actual incorrecta")
+            
+            if new_password != confirm_password:
+                return render_template('cambiar_password.html', error="❌ Las contraseñas nuevas no coinciden")
+            
+            if len(new_password) < 6:
+                return render_template('cambiar_password.html', error="❌ La contraseña debe tener al menos 6 caracteres")
+            
+            # Guardar nueva contraseña en Supabase
+            if guardar_admin_password(new_password):
+                ADMIN_PASS = new_password
+                return render_template('cambiar_password.html', success="✅ Contraseña de administrador actualizada correctamente")
+            else:
+                return render_template('cambiar_password.html', error="❌ Error al guardar la nueva contraseña")
         
-        if new_password != confirm_password:
-            return render_template('cambiar_password.html', error="❌ Las contraseñas nuevas no coinciden")
-        
-        if len(new_password) < 6:
-            return render_template('cambiar_password.html', error="❌ La contraseña debe tener al menos 6 caracteres")
-        
-        hashed = generate_password_hash(new_password)
-        supabase.table("usuarios").update({"password": hashed}).eq("id", current_user.id).execute()
-        
-        return render_template('cambiar_password.html', success="✅ Contraseña actualizada correctamente")
+        # Si es USUARIO NORMAL
+        elif current_user.is_authenticated:
+            if not current_user.check_password(current_password):
+                return render_template('cambiar_password.html', error="❌ Contraseña actual incorrecta")
+            
+            if new_password != confirm_password:
+                return render_template('cambiar_password.html', error="❌ Las contraseñas nuevas no coinciden")
+            
+            if len(new_password) < 6:
+                return render_template('cambiar_password.html', error="❌ La contraseña debe tener al menos 6 caracteres")
+            
+            hashed = generate_password_hash(new_password)
+            supabase.table("usuarios").update({"password": hashed}).eq("id", current_user.id).execute()
+            
+            return render_template('cambiar_password.html', success="✅ Contraseña actualizada correctamente")
     
     return render_template('cambiar_password.html')
 
@@ -497,7 +545,6 @@ def reset_password(token):
 
 # ========== ADMINISTRACIÓN ==========
 ADMIN_USER = "TECNOBOTS"
-ADMIN_PASS = "TECNO2024"
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
