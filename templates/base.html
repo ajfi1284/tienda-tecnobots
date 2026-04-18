@@ -7,70 +7,73 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style_nuevo.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        /* Fondo tecnológico de puntos - MÁS VISIBLE */
+   <style>
     body {
-        background-image: url('https://plcmjxzmjeiqxhwdstqh.supabase.co/storage/v1/object/public/fondos/logo2.png');
-        background-size: 100% auto;
-        background-position: top center;
-        background-repeat: no-repeat;
         background-color: #e8ecf1;
     }
-        
-        .header-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        .logo {
-            flex-shrink: 0;
+    
+    main {
+        background-image: url('https://plcmjxzmjeiqxhwdstqh.supabase.co/storage/v1/object/public/fondos/logo2.png');
+        background-size: cover;
+        background-position: top center;
+        background-repeat: no-repeat;
+        min-height: 70vh;
+    }
+    
+    .header-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    .logo {
+        flex-shrink: 0;
+    }
+    .logo img {
+        max-height: 90px;
+        max-width: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        display: block;
+        border-radius: 0 !important;
+    }
+    .brand {
+        flex-shrink: 0;
+    }
+    .brand h1 {
+        letter-spacing: 12px;
+        font-size: 90px;
+        margin: 0;
+        white-space: nowrap;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-shrink: 0;
+    }
+    header {
+        background: #cce7ff !important;
+        padding: 15px 0;
+        border-bottom: 2px solid #2c7da0;
+    }
+    @media (max-width: 768px) {
+        .brand h1 {
+            font-size: 24px;
+            letter-spacing: 5px;
         }
         .logo img {
-            max-height: 90px;
-            max-width: 100%;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-            display: block;
-            border-radius: 0 !important;
+            max-height: 50px;
         }
-        .brand {
-            flex-shrink: 0;
+        .header-container {
+            gap: 8px;
         }
-        .brand h1 {
-            letter-spacing: 12px;
-            font-size: 90px;
-            margin: 0;
-            white-space: nowrap;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-shrink: 0;
-        }
-        header {
-            background: #cce7ff !important;
-            padding: 15px 0;
-            border-bottom: 2px solid #2c7da0;
-        }
-        @media (max-width: 768px) {
-            .brand h1 {
-                font-size: 24px;
-                letter-spacing: 5px;
-            }
-            .logo img {
-                max-height: 50px;
-            }
-            .header-container {
-                gap: 8px;
-            }
-        }
-    </style>
+    }
+</style>
 </head>
 <body>
     <header>
