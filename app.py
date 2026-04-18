@@ -122,7 +122,7 @@ def send_reset_email(email, token):
         print(f"❌ Error: {e}")
         return False
 
-def send_purchase_email(user_email, user_nombre, cart_items, total):
+def send_purchase_email(user_email, user_nombre, cart_items, total, delivery="no"):
     api_key = os.getenv("BREVO_API_KEY")
     
     productos_html = ""
@@ -141,11 +141,15 @@ def send_purchase_email(user_email, user_nombre, cart_items, total):
     
     telefono = current_user.telefono if current_user.is_authenticated else 'No registrado'
     
+    delivery_texto = "✅ Sí, requiere delivery" if delivery == "si" else "❌ No, retirará en tienda"
+    
     html = f"""
     <h2>¡Nueva compra en TECNOBOTS!</h2>
     <p><strong>Cliente:</strong> {user_nombre}</p>
     <p><strong>Email:</strong> {user_email}</p>
+    <p><strong>Teléfono:</strong> {telefono}</p>
     <p><strong>Fecha:</strong> {datetime.now().strftime('%d/%m/%Y %H:%M')}</p>
+    <p><strong>Delivery:</strong> {delivery_texto}</p>
     
     <h3>Productos comprados:</h3>
     <table border="1" cellpadding="8" style="border-collapse: collapse;">
@@ -163,7 +167,6 @@ def send_purchase_email(user_email, user_nombre, cart_items, total):
     一
     
     <p><strong>Método de pago:</strong> Por confirmar (el cliente se comunicará)</p>
-    <p><strong>Teléfono de contacto:</strong> {telefono}</p>
     """
     
     data = {
@@ -339,9 +342,12 @@ def checkout():
     
     total = sum(item['price'] * item['quantity'] for item in cart_items.values())
     
+    # Obtener opción de delivery
+    delivery = request.form.get('delivery', 'no')
+    
     guardar_venta_en_historial(current_user.email, current_user.nombre, cart_items, total)
     
-    if send_purchase_email(current_user.email, current_user.nombre, cart_items, total):
+    if send_purchase_email(current_user.email, current_user.nombre, cart_items, total, delivery):
         session.pop('cart', None)
         return render_template('checkout_success.html', mensaje="✅ ¡Compra realizada! Te hemos enviado un correo con los detalles.")
     else:
