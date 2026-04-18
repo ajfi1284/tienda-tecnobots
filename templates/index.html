@@ -42,7 +42,7 @@
             <div class="modal-image">
                 <div class="modal-gallery">
                     <button class="modal-prev" id="modalPrev">◀</button>
-                    <img id="modalImagen" src="" style="max-width:100%; max-height:250px; object-fit:contain;">
+                    <img id="modalImagen" src="" style="width:auto; max-width:100%; max-height:300px; object-fit:contain;">
                     <button class="modal-next" id="modalNext">▶</button>
                 </div>
                 <div id="modalThumbs" class="modal-thumbs" style="display:flex; gap:5px; justify-content:center; margin-top:10px;"></div>
@@ -85,12 +85,13 @@
         flex-wrap: wrap;
     }
     .miniatura {
-        width: 55px;
-        height: 55px;
-        object-fit: cover;
+        width: 70px;
+        height: 70px;
+        object-fit: contain;
         border-radius: 8px;
         cursor: pointer;
         border: 2px solid transparent;
+        background: #f0f0f0;
     }
     .miniatura:hover {
         border-color: #1f4e6e;
@@ -178,14 +179,16 @@
         gap: 8px;
         justify-content: center;
         margin-top: 10px;
+        flex-wrap: wrap;
     }
     .modal-thumb {
-        width: 50px;
-        height: 50px;
-        object-fit: cover;
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
         border-radius: 8px;
         cursor: pointer;
         border: 2px solid transparent;
+        background: #f0f0f0;
     }
     .modal-thumb.active {
         border-color: #1f4e6e;
@@ -237,7 +240,6 @@
         document.getElementById('modalStock').innerHTML = product.stock > 0 ? `Stock disponible: ${product.stock}` : 'Agotado';
         document.getElementById('modalDescripcion').innerText = product.descripcion || 'Sin descripción disponible.';
         
-        // Generar miniaturas
         var thumbsContainer = document.getElementById('modalThumbs');
         thumbsContainer.innerHTML = '';
         if (currentImages.length > 0) {
