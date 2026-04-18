@@ -682,63 +682,88 @@ def admin_imagen_eliminar(id_imagen):
 @app.route('/admin/resumen')
 @admin_required
 def admin_resumen():
-    mes = request.args.get('mes', 'todos')
-    año = request.args.get('año', 'todos')
+    # Obtener filtros generales
+    mes_general = request.args.get('mes_general', 'todos')
+    año_general = request.args.get('año_general', 'todos')
     
+    # Obtener filtros individuales
+    mes_creditos = request.args.get('mes_creditos', 'todos')
+    año_creditos = request.args.get('año_creditos', 'todos')
+    mes_ventas = request.args.get('mes_ventas', 'todos')
+    año_ventas = request.args.get('año_ventas', 'todos')
+    mes_gastos = request.args.get('mes_gastos', 'todos')
+    año_gastos = request.args.get('año_gastos', 'todos')
+    
+    # ========== RESUMEN GENERAL (con filtro general) ==========
     # Mercancía en tienda (sin filtro)
     res_merc = supabase.table("productos").select("cantidad, precio_venta").execute()
     mercancia = sum(p["cantidad"] * p["precio_venta"] for p in res_merc.data) if res_merc.data else 0
 
-    # Ventas (columna: fecha_venta)
-    query_ventas = supabase.table("ventas").select("*")
-    query_ventas = aplicar_filtro_fecha_general(query_ventas, mes, año, "fecha_venta")
-    res_ventas = query_ventas.execute()
-    ventas_pagadas = sum(v["abono"] for v in res_ventas.data) if res_ventas.data else 0
-    ventas_periodo = sum(v["total"] for v in res_ventas.data) if res_ventas.data else 0
-    ventas_lista = res_ventas.data if res_ventas.data else []
+    # Ventas para resumen (con filtro general)
+    query_ventas_general = supabase.table("ventas").select("*")
+    query_ventas_general = aplicar_filtro_fecha_general(query_ventas_general, mes_general, año_general, "fecha_venta")
+    res_ventas_general = query_ventas_general.execute()
+    ventas_pagadas = sum(v["abono"] for v in res_ventas_general.data) if res_ventas_general.data else 0
+    ventas_periodo = sum(v["total"] for v in res_ventas_general.data) if res_ventas_general.data else 0
     
-    # Incrementos (columna: fecha)
+    # Incrementos (con filtro general)
     query_inc = supabase.table("incrementos_efectivo").select("*")
-    query_inc = aplicar_filtro_fecha_general(query_inc, mes, año, "fecha")
+    query_inc = aplicar_filtro_fecha_general(query_inc, mes_general, año_general, "fecha")
     res_inc = query_inc.execute()
     incrementos = sum(i["monto"] for i in res_inc.data) if res_inc.data else 0
     
-    # Gastos (columna: fecha)
-    query_gastos = supabase.table("gastos").select("*")
-    query_gastos = aplicar_filtro_fecha_general(query_gastos, mes, año, "fecha")
-    res_gastos = query_gastos.execute()
-    gastos = sum(g["monto"] for g in res_gastos.data) if res_gastos.data else 0
-    gastos_lista = res_gastos.data if res_gastos.data else []
+    # Gastos para resumen (con filtro general)
+    query_gastos_general = supabase.table("gastos").select("*")
+    query_gastos_general = aplicar_filtro_fecha_general(query_gastos_general, mes_general, año_general, "fecha")
+    res_gastos_general = query_gastos_general.execute()
+    gastos_general = sum(g["monto"] for g in res_gastos_general.data) if res_gastos_general.data else 0
     
-    efectivo = ventas_pagadas + incrementos - gastos
+    efectivo = ventas_pagadas + incrementos - gastos_general
 
-    # Créditos (columna: fecha_venta)
-    query_creditos = supabase.table("ventas").select("*").eq("estado", "Crédito")
-    query_creditos = aplicar_filtro_fecha_general(query_creditos, mes, año, "fecha_venta")
-    res_creditos = query_creditos.execute()
+    # Créditos para resumen (con filtro general)
+    query_creditos_general = supabase.table("ventas").select("*").eq("estado", "Crédito")
+    query_creditos_general = aplicar_filtro_fecha_general(query_creditos_general, mes_general, año_general, "fecha_venta")
+    res_creditos_general = query_creditos_general.execute()
     creditos_pendientes = 0
-    creditos_lista = []
-    if res_creditos.data:
-        for v in res_creditos.data:
+    if res_creditos_general.data:
+        for v in res_creditos_general.data:
             pendiente = v["total"] - v["abono"]
             if pendiente > 0:
                 creditos_pendientes += pendiente
-                creditos_lista.append(v)
 
+    # ========== MÓDULOS CON FILTROS INDIVIDUALES ==========
+    # Ventas a crédito (con filtro individual)
+    query_creditos = supabase.table("ventas").select("*").eq("estado", "Crédito")
+    query_creditos = aplicar_filtro_fecha_general(query_creditos, mes_creditos, año_creditos, "fecha_venta")
+    res_creditos = query_creditos.execute()
+    creditos_lista = res_creditos.data if res_creditos.data else []
+    
+    # Ventas del período (con filtro individual)
+    query_ventas = supabase.table("ventas").select("*")
+    query_ventas = aplicar_filtro_fecha_general(query_ventas, mes_ventas, año_ventas, "fecha_venta")
+    res_ventas = query_ventas.execute()
+    ventas_lista = res_ventas.data if res_ventas.data else []
+    
+    # Gastos (con filtro individual)
+    query_gastos = supabase.table("gastos").select("*")
+    query_gastos = aplicar_filtro_fecha_general(query_gastos, mes_gastos, año_gastos, "fecha")
+    res_gastos = query_gastos.execute()
+    gastos_lista = res_gastos.data if res_gastos.data else []
+    
     # Almacén (sin filtro)
     res_almacen = supabase.table("registros_almacen").select("cantidad, precio_venta, nombre").eq("estado", "Pendiente").execute()
     total_almacen = sum(a["cantidad"] * a["precio_venta"] for a in res_almacen.data) if res_almacen.data else 0
     almacen_lista = res_almacen.data if res_almacen.data else []
-
+    
     # Productos nuevos (sin filtro)
     res_nuevos = supabase.table("productos_nuevos").select("cantidad, precio_venta, nombre").eq("estado", "Pendiente").execute()
     total_productos_nuevos = sum(n["cantidad"] * n["precio_venta"] for n in res_nuevos.data) if res_nuevos.data else 0
     nuevos_lista = res_nuevos.data if res_nuevos.data else []
-
+    
     # Capital Neto
     capital_neto = efectivo + creditos_pendientes + total_almacen + total_productos_nuevos + mercancia
-
-    # Años disponibles
+    
+    # Años disponibles para filtros
     años_response = supabase.table("ventas").select("fecha_venta").execute()
     años_disponibles = sorted(set([f['fecha_venta'][:4] for f in años_response.data if f.get('fecha_venta')]), reverse=True) if años_response.data else []
     if not años_disponibles:
@@ -749,15 +774,24 @@ def admin_resumen():
                           efectivo=efectivo,
                           creditos_pendientes=creditos_pendientes,
                           ventas_periodo=ventas_periodo,
-                          ventas_lista=ventas_lista[:10],
+                          capital_neto=capital_neto,
+                          # Listas para módulos
                           creditos_lista=creditos_lista[:10],
+                          ventas_lista=ventas_lista[:10],
                           gastos_lista=gastos_lista[:10],
                           almacen_lista=almacen_lista[:10],
                           nuevos_lista=nuevos_lista[:10],
-                          mes_seleccionado=mes,
-                          año_seleccionado=año,
-                          años_disponibles=años_disponibles,
-                          capital_neto=capital_neto)
+                          # Filtros generales
+                          mes_general=mes_general,
+                          año_general=año_general,
+                          # Filtros individuales
+                          mes_creditos=mes_creditos,
+                          año_creditos=año_creditos,
+                          mes_ventas=mes_ventas,
+                          año_ventas=año_ventas,
+                          mes_gastos=mes_gastos,
+                          año_gastos=año_gastos,
+                          años_disponibles=años_disponibles)
 
 # ========== EJECUCIÓN ==========
 if __name__ == "__main__":
