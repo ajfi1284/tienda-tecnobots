@@ -2,28 +2,34 @@
 
 {% block content %}
 <h2>Nuestros Productos</h2>
-<div class="products-grid">
+<div class="products-grid" id="products-grid">
     {% for producto in productos %}
-    <div class="product-card" onclick="openProductModal({{ producto.id }})">
-        <div class="product-image">
+    <div class="product-card {% if producto.cantidad == 0 %}out-of-stock{% endif %}" data-producto-id="{{ producto.id }}" onclick="openProductModal({{ producto.id }})">
+        <div class="product-image" onclick="event.stopPropagation()">
             {% set imagenes = producto.imagenes if producto.imagenes else [] %}
             {% if imagenes %}
                 <div class="miniaturas">
                     {% for img in imagenes[:4] %}
-                        <img src="{{ img.imagen_url }}" class="miniatura" data-img="{{ img.imagen_url }}" data-index="{{ loop.index0 }}">
+                        <img src="{{ img.imagen_url }}" alt="{{ producto.nombre }}" class="miniatura" data-img="{{ img.imagen_url }}" data-index="{{ loop.index0 }}" data-id="{{ producto.id }}" onclick="event.stopPropagation(); openImageModal({{ producto.id }}, {{ loop.index0 }})">
                     {% endfor %}
                 </div>
+                <div class="galeria-nav" style="margin-top: 10px;">
+                    <button class="prev-btn" data-id="{{ producto.id }}" data-index="0" onclick="event.stopPropagation()">◀</button>
+                    <span class="contador" data-id="{{ producto.id }}">1/{{ imagenes|length }}</span>
+                    <button class="next-btn" data-id="{{ producto.id }}" data-index="0" onclick="event.stopPropagation()">▶</button>
+                </div>
             {% else %}
-                <img src="{{ url_for('static', filename='images/placeholder.png') }}" style="width:100%; max-height:150px; object-fit:contain;">
+                <img src="{{ url_for('static', filename='images/placeholder.png') }}" alt="Sin imagen">
             {% endif %}
         </div>
-        <h3>{{ producto.nombre }}</h3>
+        <h3 class="producto-nombre" data-id="{{ producto.id }}">{{ producto.nombre }}</h3>
         <p class="price">${{ "%.2f"|format(producto.precio_venta) }}</p>
         {% if producto.cantidad == 0 %}
             <p class="stock stock-zero">Stock: 0</p>
+            <button class="btn-disabled" disabled onclick="event.stopPropagation()">❌ Agotado</button>
         {% else %}
             <p class="stock">Stock: {{ producto.cantidad }}</p>
-            <form method="POST" action="{{ url_for('add_to_cart') }}" onclick="event.stopPropagation()">
+            <form method="POST" action="{{ url_for('add_to_cart') }}" class="add-to-cart-form" onclick="event.stopPropagation()">
                 <input type="hidden" name="product_id" value="{{ producto.nombre }}">
                 <input type="hidden" name="product_name" value="{{ producto.nombre }}">
                 <input type="hidden" name="product_price" value="{{ producto.precio_venta }}">
@@ -34,25 +40,46 @@
     {% endfor %}
 </div>
 
-<!-- Modal con imagen y miniaturas -->
-<div id="productModal" class="modal">
-    <div class="modal-content">
-        <span class="close">&times;</span>
-        <div class="modal-body">
-            <div class="modal-image">
-                <div class="modal-gallery">
-                    <button class="modal-prev" id="modalPrev">◀</button>
-                    <img id="modalImagen" src="" style="width:auto; max-width:100%; max-height:300px; object-fit:contain;">
-                    <button class="modal-next" id="modalNext">▶</button>
-                </div>
-                <div id="modalThumbs" class="modal-thumbs" style="display:flex; gap:5px; justify-content:center; margin-top:10px;"></div>
+<!-- Modal para zoom de imágenes -->
+<div id="imageModal" class="modal">
+    <span class="close">&times;</span>
+    <div class="modal-nav">
+        <button class="modal-prev" id="modalPrev">◀</button>
+        <div class="modal-content">
+            <img id="modalImage" class="modal-img">
+        </div>
+        <button class="modal-next" id="modalNext">▶</button>
+    </div>
+    <div class="modal-counter">
+        <span id="modalCounter">1/1</span>
+    </div>
+    <div class="zoom-controls">
+        <button id="zoomIn" class="zoom-btn">🔍 +</button>
+        <button id="zoomOut" class="zoom-btn">🔍 -</button>
+        <button id="resetZoom" class="zoom-btn">⟳ Restablecer</button>
+    </div>
+</div>
+
+<!-- Modal para detalle del producto -->
+<div id="productModal" class="modal-product">
+    <div class="modal-product-content">
+        <span class="close-product">&times;</span>
+        <div class="modal-product-body">
+            <div class="modal-product-images">
+                <img id="modalProductImage" class="modal-product-img" src="">
+                <div id="modalProductThumbs" class="modal-thumbs"></div>
             </div>
-            <div class="modal-info">
-                <h2 id="modalNombre"></h2>
-                <p id="modalPrecio"></p>
-                <p id="modalStock"></p>
-                <p id="modalDescripcion"></p>
-                <button id="modalAgregarCarrito">Agregar al carrito</button>
+            <div class="modal-product-info">
+                <h2 id="modalProductName"></h2>
+                <p class="modal-product-price" id="modalProductPrice"></p>
+                <p class="modal-product-stock" id="modalProductStock"></p>
+                <p class="modal-product-desc" id="modalProductDesc"></p>
+                <form id="modalAddToCartForm" method="POST" action="{{ url_for('add_to_cart') }}">
+                    <input type="hidden" name="product_id" id="modalProductId">
+                    <input type="hidden" name="product_name" id="modalProductNameInput">
+                    <input type="hidden" name="product_price" id="modalProductPriceInput">
+                    <button type="submit" class="btn-add-modal">🛒 Agregar al carrito</button>
+                </form>
             </div>
         </div>
     </div>
@@ -71,30 +98,69 @@
         padding: 15px;
         text-align: center;
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        transition: transform 0.3s;
+        transition: transform 0.3s, box-shadow 0.3s;
         cursor: pointer;
     }
     .product-card:hover {
         transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    .product-card.out-of-stock {
+        background: linear-gradient(135deg, #d4c4e0, #c0a8d4);
+        opacity: 0.8;
+    }
+    .product-image {
+        text-align: center;
     }
     .miniaturas {
         display: flex;
         gap: 5px;
         justify-content: center;
         margin-bottom: 10px;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        overflow-x: auto;
     }
     .miniatura {
-        width: 70px;
-        height: 70px;
-        object-fit: contain;
+        width: 55px !important;
+        height: 55px !important;
+        object-fit: cover !important;
+        object-position: center !important;
         border-radius: 8px;
         cursor: pointer;
         border: 2px solid transparent;
+        transition: 0.2s;
         background: #f0f0f0;
     }
     .miniatura:hover {
         border-color: #1f4e6e;
+        transform: scale(1.05);
+    }
+    .galeria-nav {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        align-items: center;
+    }
+    .prev-btn, .next-btn {
+        background: #1f4e6e;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .contador {
+        font-size: 12px;
+        color: #333;
+    }
+    .producto-nombre {
+        font-size: 1.1rem;
+        margin: 15px 0 5px;
+        color: #4a2c6e;
+        text-decoration: none;
+        transition: 0.2s;
     }
     .price {
         font-size: 1.3rem;
@@ -122,7 +188,95 @@
     .btn-add:hover {
         background: #8a5bc4;
     }
+    .btn-disabled {
+        background: #999;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 25px;
+        width: 100%;
+        cursor: not-allowed;
+    }
+    
+    /* Modal de imagen (zoom) */
     .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.95);
+    }
+    .modal-nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 80vh;
+        margin-top: 5vh;
+    }
+    .modal-content {
+        margin: 0 20px;
+        text-align: center;
+    }
+    .modal-img {
+        max-width: 70vw;
+        max-height: 70vh;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+        cursor: zoom-in;
+    }
+    .modal-prev, .modal-next {
+        background: rgba(255,255,255,0.3);
+        color: white;
+        border: none;
+        font-size: 40px;
+        padding: 20px;
+        cursor: pointer;
+        border-radius: 50%;
+        transition: 0.3s;
+    }
+    .modal-prev:hover, .modal-next:hover {
+        background: rgba(255,255,255,0.6);
+        color: #1f4e6e;
+    }
+    .close {
+        position: absolute;
+        top: 20px;
+        right: 35px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 1001;
+    }
+    .close:hover {
+        color: #bbb;
+    }
+    .modal-counter {
+        text-align: center;
+        color: white;
+        font-size: 16px;
+        margin-top: 10px;
+    }
+    .zoom-controls {
+        text-align: center;
+        margin-top: 20px;
+    }
+    .zoom-btn {
+        background: #1f4e6e;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin: 0 10px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    
+    /* Modal de producto (detalle) */
+    .modal-product {
         display: none;
         position: fixed;
         z-index: 1000;
@@ -132,82 +286,125 @@
         height: 100%;
         background-color: rgba(0,0,0,0.8);
     }
-    .modal-content {
+    .modal-product-content {
         background-color: white;
         margin: 5% auto;
         padding: 20px;
         width: 80%;
-        max-width: 900px;
+        max-width: 1000px;
         border-radius: 15px;
         position: relative;
+        max-height: 85vh;
+        overflow-y: auto;
     }
-    .close {
+    .close-product {
         position: absolute;
-        top: 10px;
-        right: 20px;
-        font-size: 28px;
+        top: 15px;
+        right: 25px;
+        color: #1f4e6e;
+        font-size: 35px;
+        font-weight: bold;
         cursor: pointer;
     }
-    .modal-body {
-        display: flex;
-        gap: 20px;
-        flex-wrap: wrap;
+    .close-product:hover {
+        color: #999;
     }
-    .modal-image {
+    .modal-product-body {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+    }
+    .modal-product-images {
         flex: 1;
         min-width: 250px;
         text-align: center;
     }
-    .modal-gallery {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-    }
-    .modal-prev, .modal-next {
-        background: #1f4e6e;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 35px;
-        height: 35px;
-        cursor: pointer;
-        font-size: 18px;
+    .modal-product-img {
+        max-width: 100%;
+        max-height: 300px;
+        object-fit: contain;
+        border-radius: 10px;
     }
     .modal-thumbs {
         display: flex;
-        gap: 8px;
+        gap: 10px;
+        margin-top: 15px;
         justify-content: center;
-        margin-top: 10px;
         flex-wrap: wrap;
     }
     .modal-thumb {
         width: 60px;
         height: 60px;
-        object-fit: contain;
+        object-fit: cover;
         border-radius: 8px;
         cursor: pointer;
         border: 2px solid transparent;
-        background: #f0f0f0;
     }
-    .modal-thumb.active {
+    .modal-thumb:hover, .modal-thumb.active {
         border-color: #1f4e6e;
     }
-    .modal-info {
+    .modal-product-info {
         flex: 1;
-        min-width: 200px;
+        min-width: 250px;
     }
-    @media (max-width: 600px) {
-        .modal-body {
+    .modal-product-info h2 {
+        color: #1f4e6e;
+        margin-bottom: 15px;
+    }
+    .modal-product-price {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #28a745;
+        margin: 15px 0;
+    }
+    .modal-product-stock {
+        color: green;
+        margin-bottom: 15px;
+    }
+    .modal-product-desc {
+        color: #555;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+    .btn-add-modal {
+        background: #1f4e6e;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 1rem;
+        width: 100%;
+    }
+    .btn-add-modal:hover {
+        background: #2c7da0;
+    }
+    
+    @media (max-width: 768px) {
+        .modal-product-content {
+            width: 95%;
+            margin: 10% auto;
+        }
+        .modal-product-body {
             flex-direction: column;
+        }
+        .miniatura {
+            width: 50px !important;
+            height: 50px !important;
         }
     }
 </style>
 
 <script>
+    window.imagenesData = {};
     window.productosData = {};
     {% for producto in productos %}
         {% set imagenes = producto.imagenes if producto.imagenes else [] %}
+        window.imagenesData[{{ producto.id }}] = [
+            {% for img in imagenes %}
+                "{{ img.imagen_url }}",
+            {% endfor %}
+        ];
         window.productosData[{{ producto.id }}] = {
             id: {{ producto.id }},
             nombre: "{{ producto.nombre }}",
@@ -222,91 +419,170 @@
         };
     {% endfor %}
     
-    var modal = document.getElementById('productModal');
-    var span = document.getElementsByClassName('close')[0];
-    var currentImages = [];
+    var currentProductId = null;
     var currentImageIndex = 0;
+    var currentImagesList = [];
+    var currentZoom = 1;
+    
+    function cambiarImagen(productoId, nuevoIndice, imagenes) {
+        let miniaturas = document.querySelectorAll(`.miniatura[data-id='${productoId}']`);
+        if (miniaturas.length > 0 && imagenes && imagenes[nuevoIndice]) {
+            miniaturas.forEach((thumb, idx) => {
+                if (idx === nuevoIndice) {
+                    thumb.style.borderColor = '#1f4e6e';
+                } else {
+                    thumb.style.borderColor = 'transparent';
+                }
+            });
+            let contador = document.querySelector(`.contador[data-id='${productoId}']`);
+            if (contador) {
+                contador.innerText = `${nuevoIndice + 1}/${imagenes.length}`;
+            }
+            let prevBtn = document.querySelector(`.prev-btn[data-id='${productoId}']`);
+            let nextBtn = document.querySelector(`.next-btn[data-id='${productoId}']`);
+            if (prevBtn) prevBtn.setAttribute('data-index', nuevoIndice);
+            if (nextBtn) nextBtn.setAttribute('data-index', nuevoIndice);
+        }
+    }
+    
+    function openImageModal(productId, index) {
+        currentProductId = productId;
+        currentImagesList = window.imagenesData[productId] || [];
+        currentImageIndex = index;
+        currentZoom = 1;
+        if (currentImagesList.length > 0) {
+            var modalImg = document.getElementById('modalImage');
+            modalImg.src = currentImagesList[currentImageIndex];
+            modalImg.style.transform = 'scale(1)';
+            document.getElementById('modalCounter').innerText = `${currentImageIndex + 1}/${currentImagesList.length}`;
+            var modalPrev = document.getElementById('modalPrev');
+            var modalNext = document.getElementById('modalNext');
+            if (currentImagesList.length <= 1) {
+                modalPrev.style.display = 'none';
+                modalNext.style.display = 'none';
+            } else {
+                modalPrev.style.display = 'block';
+                modalNext.style.display = 'block';
+            }
+            document.getElementById('imageModal').style.display = 'block';
+        }
+    }
     
     function openProductModal(productId) {
         var product = window.productosData[productId];
         if (!product) return;
-        
-        currentImages = product.imagenes || [];
-        currentImageIndex = 0;
-        
-        document.getElementById('modalImagen').src = currentImages.length > 0 ? currentImages[0] : "{{ url_for('static', filename='images/placeholder.png') }}";
-        document.getElementById('modalNombre').innerText = product.nombre;
-        document.getElementById('modalPrecio').innerText = `Precio: $${product.precio.toFixed(2)}`;
-        document.getElementById('modalStock').innerHTML = product.stock > 0 ? `Stock disponible: ${product.stock}` : 'Agotado';
-        document.getElementById('modalDescripcion').innerText = product.descripcion || 'Sin descripción disponible.';
-        
-        var thumbsContainer = document.getElementById('modalThumbs');
+        document.getElementById('modalProductName').innerText = product.nombre;
+        document.getElementById('modalProductPrice').innerText = `$${product.precio.toFixed(2)}`;
+        document.getElementById('modalProductStock').innerHTML = product.stock > 0 ? `✅ Stock disponible: ${product.stock}` : '❌ Agotado';
+        document.getElementById('modalProductDesc').innerText = product.descripcion || 'Sin descripción disponible.';
+        document.getElementById('modalProductId').value = product.nombre;
+        document.getElementById('modalProductNameInput').value = product.nombre;
+        document.getElementById('modalProductPriceInput').value = product.precio;
+        if (product.imagenes.length > 0) {
+            document.getElementById('modalProductImage').src = product.imagenes[0];
+        }
+        var thumbsContainer = document.getElementById('modalProductThumbs');
         thumbsContainer.innerHTML = '';
-        if (currentImages.length > 0) {
-            currentImages.forEach((img, idx) => {
-                var thumb = document.createElement('img');
-                thumb.src = img;
-                thumb.classList.add('modal-thumb');
-                if (idx === 0) thumb.classList.add('active');
-                thumb.onclick = function() {
-                    document.getElementById('modalImagen').src = img;
-                    currentImageIndex = idx;
-                    document.querySelectorAll('.modal-thumb').forEach(t => t.classList.remove('active'));
-                    thumb.classList.add('active');
-                };
-                thumbsContainer.appendChild(thumb);
-            });
-        } else {
-            var placeholder = document.createElement('img');
-            placeholder.src = "{{ url_for('static', filename='images/placeholder.png') }}";
-            placeholder.classList.add('modal-thumb');
-            thumbsContainer.appendChild(placeholder);
+        product.imagenes.forEach((img, idx) => {
+            var thumb = document.createElement('img');
+            thumb.src = img;
+            thumb.classList.add('modal-thumb');
+            if (idx === 0) thumb.classList.add('active');
+            thumb.onclick = function() {
+                document.getElementById('modalProductImage').src = img;
+                document.querySelectorAll('.modal-thumb').forEach(t => t.classList.remove('active'));
+                thumb.classList.add('active');
+            };
+            thumbsContainer.appendChild(thumb);
+        });
+        document.getElementById('productModal').style.display = 'block';
+    }
+    
+    // Eventos de navegación en galería pequeña
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('next-btn')) {
+            e.stopPropagation();
+            let productoId = parseInt(e.target.getAttribute('data-id'));
+            let indiceActual = parseInt(e.target.getAttribute('data-index'));
+            let imagenes = window.imagenesData[productoId];
+            if (imagenes && indiceActual + 1 < imagenes.length) {
+                cambiarImagen(productoId, indiceActual + 1, imagenes);
+            }
         }
         
-        modal.style.display = 'block';
-    }
-    
-    span.onclick = function() {
-        modal.style.display = 'none';
-    }
-    
-    window.onclick = function(event) {
-        if (event.target == modal) {
-            modal.style.display = 'none';
+        if (e.target.classList.contains('prev-btn')) {
+            e.stopPropagation();
+            let productoId = parseInt(e.target.getAttribute('data-id'));
+            let indiceActual = parseInt(e.target.getAttribute('data-index'));
+            let imagenes = window.imagenesData[productoId];
+            if (imagenes && indiceActual - 1 >= 0) {
+                cambiarImagen(productoId, indiceActual - 1, imagenes);
+            }
         }
-    }
+        
+        if (e.target.classList.contains('miniatura')) {
+            e.stopPropagation();
+            let productoId = parseInt(e.target.getAttribute('data-id'));
+            let index = parseInt(e.target.getAttribute('data-index'));
+            openImageModal(productoId, index);
+        }
+    });
     
-    document.getElementById('modalPrev').onclick = function() {
-        if (currentImages.length > 0 && currentImageIndex - 1 >= 0) {
+    document.getElementById('modalPrev').addEventListener('click', function() {
+        if (currentImagesList.length > 0 && currentImageIndex - 1 >= 0) {
             currentImageIndex--;
-            document.getElementById('modalImagen').src = currentImages[currentImageIndex];
-            document.querySelectorAll('.modal-thumb').forEach((thumb, idx) => {
-                if (idx === currentImageIndex) {
-                    thumb.classList.add('active');
-                } else {
-                    thumb.classList.remove('active');
-                }
-            });
+            document.getElementById('modalImage').src = currentImagesList[currentImageIndex];
+            document.getElementById('modalImage').style.transform = 'scale(1)';
+            currentZoom = 1;
+            document.getElementById('modalCounter').innerText = `${currentImageIndex + 1}/${currentImagesList.length}`;
         }
-    }
-    
-    document.getElementById('modalNext').onclick = function() {
-        if (currentImages.length > 0 && currentImageIndex + 1 < currentImages.length) {
+    });
+    document.getElementById('modalNext').addEventListener('click', function() {
+        if (currentImagesList.length > 0 && currentImageIndex + 1 < currentImagesList.length) {
             currentImageIndex++;
-            document.getElementById('modalImagen').src = currentImages[currentImageIndex];
-            document.querySelectorAll('.modal-thumb').forEach((thumb, idx) => {
-                if (idx === currentImageIndex) {
-                    thumb.classList.add('active');
-                } else {
-                    thumb.classList.remove('active');
-                }
-            });
+            document.getElementById('modalImage').src = currentImagesList[currentImageIndex];
+            document.getElementById('modalImage').style.transform = 'scale(1)';
+            currentZoom = 1;
+            document.getElementById('modalCounter').innerText = `${currentImageIndex + 1}/${currentImagesList.length}`;
         }
-    }
-    
-    document.getElementById('modalAgregarCarrito').onclick = function() {
-        alert('Producto agregado al carrito desde el modal');
-        modal.style.display = 'none';
-    }
+    });
+    document.querySelector('.close').addEventListener('click', function() {
+        document.getElementById('imageModal').style.display = 'none';
+    });
+    window.addEventListener('click', function(e) {
+        if (e.target == document.getElementById('imageModal')) {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+        if (e.target == document.getElementById('productModal')) {
+            document.getElementById('productModal').style.display = 'none';
+        }
+    });
+    document.getElementById('zoomIn').addEventListener('click', function() {
+        currentZoom += 0.2;
+        document.getElementById('modalImage').style.transform = `scale(${currentZoom})`;
+    });
+    document.getElementById('zoomOut').addEventListener('click', function() {
+        if (currentZoom > 0.4) {
+            currentZoom -= 0.2;
+            document.getElementById('modalImage').style.transform = `scale(${currentZoom})`;
+        }
+    });
+    document.getElementById('resetZoom').addEventListener('click', function() {
+        currentZoom = 1;
+        document.getElementById('modalImage').style.transform = 'scale(1)';
+    });
+    document.querySelector('.close-product').addEventListener('click', function() {
+        document.getElementById('productModal').style.display = 'none';
+    });
+    document.querySelectorAll('.product-card').forEach(card => {
+        let productId = card.getAttribute('data-producto-id');
+        let imagenes = window.imagenesData[productId];
+        if (imagenes && imagenes.length > 0) {
+            let primeraMiniatura = card.querySelector('.miniatura');
+            if (primeraMiniatura) {
+                primeraMiniatura.style.borderColor = '#1f4e6e';
+            }
+        }
+    });
 </script>
 {% endblock %}
