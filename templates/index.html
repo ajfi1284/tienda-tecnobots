@@ -23,13 +23,6 @@
             {% endif %}
         </div>
         <h3 class="producto-nombre" data-id="{{ producto.id }}">{{ producto.nombre }}</h3>
-        <p class="descripcion">
-            {% if producto.descripcion %}
-                {{ producto.descripcion[:80] }}{% if producto.descripcion|length > 80 %}...{% endif %}
-            {% else %}
-                <span class="sin-descripcion">Sin descripción</span>
-            {% endif %}
-        </p>
         <p class="price">${{ "%.2f"|format(producto.precio_venta) }}</p>
         {% if producto.cantidad == 0 %}
             <p class="stock stock-zero">Stock: 0</p>
@@ -125,15 +118,13 @@
         flex-wrap: wrap;
     }
     .miniatura {
-        width: 80px;
+        width: 60px;
         height: 60px;
-        object-fit: contain;
+        object-fit: cover;
         border-radius: 8px;
         cursor: pointer;
         border: 2px solid transparent;
         transition: 0.2s;
-        background: #f0f0f0;
-    }
     }
     .miniatura:hover {
         border-color: #1f4e6e;
@@ -170,15 +161,6 @@
     }
     .producto-nombre:hover {
         text-decoration-color: #1f4e6e;
-    }
-    .descripcion {
-        font-size: 0.85rem;
-        color: #555;
-        margin: 8px 0;
-    }
-    .sin-descripcion {
-        color: #999;
-        font-style: italic;
     }
     .price {
         font-size: 1.3rem;
@@ -411,7 +393,6 @@
 </style>
 
 <script>
-    // Datos de imágenes de productos
     window.imagenesData = {};
     window.productosData = {};
     {% for producto in productos %}
@@ -435,16 +416,13 @@
         };
     {% endfor %}
     
-    // Variables globales para el modal de imagen
     var currentProductId = null;
     var currentImageIndex = 0;
     var currentImagesList = [];
     var currentZoom = 1;
     
-    // Función para cambiar imagen en la galería pequeña
     function cambiarImagen(productoId, nuevoIndice, imagenes) {
         let miniaturas = document.querySelectorAll(`.miniatura[data-id='${productoId}']`);
-        
         if (miniaturas.length > 0 && imagenes && imagenes[nuevoIndice]) {
             miniaturas.forEach((thumb, idx) => {
                 if (idx === nuevoIndice) {
@@ -453,12 +431,10 @@
                     thumb.style.borderColor = 'transparent';
                 }
             });
-            
             let contador = document.querySelector(`.contador[data-id='${productoId}']`);
             if (contador) {
                 contador.innerText = `${nuevoIndice + 1}/${imagenes.length}`;
             }
-            
             let prevBtn = document.querySelector(`.prev-btn[data-id='${productoId}']`);
             let nextBtn = document.querySelector(`.next-btn[data-id='${productoId}']`);
             if (prevBtn) prevBtn.setAttribute('data-index', nuevoIndice);
@@ -466,19 +442,16 @@
         }
     }
     
-    // Abrir modal de imagen (zoom)
     function openImageModal(productId, index) {
         currentProductId = productId;
         currentImagesList = window.imagenesData[productId] || [];
         currentImageIndex = index;
         currentZoom = 1;
-        
         if (currentImagesList.length > 0) {
             var modalImg = document.getElementById('modalImage');
             modalImg.src = currentImagesList[currentImageIndex];
             modalImg.style.transform = 'scale(1)';
             document.getElementById('modalCounter').innerText = `${currentImageIndex + 1}/${currentImagesList.length}`;
-            
             var modalPrev = document.getElementById('modalPrev');
             var modalNext = document.getElementById('modalNext');
             if (currentImagesList.length <= 1) {
@@ -492,11 +465,9 @@
         }
     }
     
-    // Abrir modal de producto (detalle)
     function openProductModal(productId) {
         var product = window.productosData[productId];
         if (!product) return;
-        
         document.getElementById('modalProductName').innerText = product.nombre;
         document.getElementById('modalProductPrice').innerText = `$${product.precio.toFixed(2)}`;
         document.getElementById('modalProductStock').innerHTML = product.stock > 0 ? `✅ Stock disponible: ${product.stock}` : '❌ Agotado';
@@ -504,13 +475,9 @@
         document.getElementById('modalProductId').value = product.nombre;
         document.getElementById('modalProductNameInput').value = product.nombre;
         document.getElementById('modalProductPriceInput').value = product.precio;
-        
-        // Mostrar primera imagen
         if (product.imagenes.length > 0) {
             document.getElementById('modalProductImage').src = product.imagenes[0];
         }
-        
-        // Mostrar miniaturas
         var thumbsContainer = document.getElementById('modalProductThumbs');
         thumbsContainer.innerHTML = '';
         product.imagenes.forEach((img, idx) => {
@@ -525,47 +492,37 @@
             };
             thumbsContainer.appendChild(thumb);
         });
-        
         document.getElementById('productModal').style.display = 'block';
     }
     
-    // Eventos de navegación en galería pequeña
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('next-btn')) {
             let productoId = parseInt(e.target.getAttribute('data-id'));
             let indiceActual = parseInt(e.target.getAttribute('data-index'));
             let imagenes = window.imagenesData[productoId];
-            
             if (imagenes && indiceActual + 1 < imagenes.length) {
                 cambiarImagen(productoId, indiceActual + 1, imagenes);
             }
         }
-        
         if (e.target.classList.contains('prev-btn')) {
             let productoId = parseInt(e.target.getAttribute('data-id'));
             let indiceActual = parseInt(e.target.getAttribute('data-index'));
             let imagenes = window.imagenesData[productoId];
-            
             if (imagenes && indiceActual - 1 >= 0) {
                 cambiarImagen(productoId, indiceActual - 1, imagenes);
             }
         }
-        
-        // Click en miniatura
         if (e.target.classList.contains('miniatura')) {
             let productoId = parseInt(e.target.getAttribute('data-id'));
             let index = parseInt(e.target.getAttribute('data-index'));
             openImageModal(productoId, index);
         }
-        
-        // Click en nombre del producto
         if (e.target.classList.contains('producto-nombre')) {
             let productoId = parseInt(e.target.getAttribute('data-id'));
             openProductModal(productoId);
         }
     });
     
-    // Eventos del modal de imagen
     document.getElementById('modalPrev').addEventListener('click', function() {
         if (currentImagesList.length > 0 && currentImageIndex - 1 >= 0) {
             currentImageIndex--;
@@ -575,7 +532,6 @@
             document.getElementById('modalCounter').innerText = `${currentImageIndex + 1}/${currentImagesList.length}`;
         }
     });
-    
     document.getElementById('modalNext').addEventListener('click', function() {
         if (currentImagesList.length > 0 && currentImageIndex + 1 < currentImagesList.length) {
             currentImageIndex++;
@@ -585,11 +541,9 @@
             document.getElementById('modalCounter').innerText = `${currentImageIndex + 1}/${currentImagesList.length}`;
         }
     });
-    
     document.querySelector('.close').addEventListener('click', function() {
         document.getElementById('imageModal').style.display = 'none';
     });
-    
     window.addEventListener('click', function(e) {
         if (e.target == document.getElementById('imageModal')) {
             document.getElementById('imageModal').style.display = 'none';
@@ -598,31 +552,23 @@
             document.getElementById('productModal').style.display = 'none';
         }
     });
-    
-    // Zoom
     document.getElementById('zoomIn').addEventListener('click', function() {
         currentZoom += 0.2;
         document.getElementById('modalImage').style.transform = `scale(${currentZoom})`;
     });
-    
     document.getElementById('zoomOut').addEventListener('click', function() {
         if (currentZoom > 0.4) {
             currentZoom -= 0.2;
             document.getElementById('modalImage').style.transform = `scale(${currentZoom})`;
         }
     });
-    
     document.getElementById('resetZoom').addEventListener('click', function() {
         currentZoom = 1;
         document.getElementById('modalImage').style.transform = 'scale(1)';
     });
-    
-    // Cerrar modal de producto
     document.querySelector('.close-product').addEventListener('click', function() {
         document.getElementById('productModal').style.display = 'none';
     });
-    
-    // Inicializar miniaturas resaltadas
     document.querySelectorAll('.product-card').forEach(card => {
         let productId = card.getAttribute('data-producto-id');
         let imagenes = window.imagenesData[productId];
