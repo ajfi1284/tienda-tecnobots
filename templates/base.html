@@ -9,27 +9,23 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
    <style>
     body {
-        background-color: #e8ecf1;
+        background: #e8ecf1;
         margin: 0;
         padding: 0;
-        overflow-x: hidden;
+    }
+    
+    header {
+        background: #cce7ff !important;
+        padding: 15px 0;
+        border-bottom: 2px solid #2c7da0;
     }
     
     main {
-        background-image: url('https://plcmjxzmjeiqxhwdstqh.supabase.co/storage/v1/object/public/fondos/logo3.png');
-        background-size: cover;
-        background-position: center center;
-        background-repeat: no-repeat;
-        width: 100vw;
-        position: relative;
-        left: 50%;
-        right: 50%;
-        margin-left: -50vw;
-        margin-right: -50vw;
+        background: #e8ecf1;
         min-height: 100vh;
     }
     
-    /* El resto de tus estilos */
+    /* El resto de estilos igual que antes */
     .header-container {
         display: flex;
         align-items: center;
@@ -65,11 +61,6 @@
         align-items: center;
         gap: 15px;
         flex-shrink: 0;
-    }
-    header {
-        background: #cce7ff !important;
-        padding: 15px 0;
-        border-bottom: 2px solid #2c7da0;
     }
     @media (max-width: 768px) {
         .brand h1 {
