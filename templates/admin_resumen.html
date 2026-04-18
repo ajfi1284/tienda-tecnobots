@@ -11,38 +11,39 @@
         <a href="{{ url_for('admin_logout') }}" class="admin-link">🚪 Cerrar sesión</a>
     </div>
     
-    <!-- Filtro principal -->
-    <div class="filtros">
+    <!-- FILTRO GENERAL (solo para tarjetas principales) -->
+    <div class="filtros filtro-general">
+        <h3>📅 Filtro del Resumen</h3>
         <form method="GET" class="filtros-form">
-            <select name="mes">
-                <option value="todos" {% if mes_seleccionado == 'todos' %}selected{% endif %}>Todos los meses</option>
-                <option value="01" {% if mes_seleccionado == '01' %}selected{% endif %}>Enero</option>
-                <option value="02" {% if mes_seleccionado == '02' %}selected{% endif %}>Febrero</option>
-                <option value="03" {% if mes_seleccionado == '03' %}selected{% endif %}>Marzo</option>
-                <option value="04" {% if mes_seleccionado == '04' %}selected{% endif %}>Abril</option>
-                <option value="05" {% if mes_seleccionado == '05' %}selected{% endif %}>Mayo</option>
-                <option value="06" {% if mes_seleccionado == '06' %}selected{% endif %}>Junio</option>
-                <option value="07" {% if mes_seleccionado == '07' %}selected{% endif %}>Julio</option>
-                <option value="08" {% if mes_seleccionado == '08' %}selected{% endif %}>Agosto</option>
-                <option value="09" {% if mes_seleccionado == '09' %}selected{% endif %}>Septiembre</option>
-                <option value="10" {% if mes_seleccionado == '10' %}selected{% endif %}>Octubre</option>
-                <option value="11" {% if mes_seleccionado == '11' %}selected{% endif %}>Noviembre</option>
-                <option value="12" {% if mes_seleccionado == '12' %}selected{% endif %}>Diciembre</option>
+            <select name="mes_general">
+                <option value="todos" {% if mes_general == 'todos' %}selected{% endif %}>Todos los meses</option>
+                <option value="01" {% if mes_general == '01' %}selected{% endif %}>Enero</option>
+                <option value="02" {% if mes_general == '02' %}selected{% endif %}>Febrero</option>
+                <option value="03" {% if mes_general == '03' %}selected{% endif %}>Marzo</option>
+                <option value="04" {% if mes_general == '04' %}selected{% endif %}>Abril</option>
+                <option value="05" {% if mes_general == '05' %}selected{% endif %}>Mayo</option>
+                <option value="06" {% if mes_general == '06' %}selected{% endif %}>Junio</option>
+                <option value="07" {% if mes_general == '07' %}selected{% endif %}>Julio</option>
+                <option value="08" {% if mes_general == '08' %}selected{% endif %}>Agosto</option>
+                <option value="09" {% if mes_general == '09' %}selected{% endif %}>Septiembre</option>
+                <option value="10" {% if mes_general == '10' %}selected{% endif %}>Octubre</option>
+                <option value="11" {% if mes_general == '11' %}selected{% endif %}>Noviembre</option>
+                <option value="12" {% if mes_general == '12' %}selected{% endif %}>Diciembre</option>
             </select>
             
-            <select name="año">
-                <option value="todos" {% if año_seleccionado == 'todos' %}selected{% endif %}>Todos los años</option>
+            <select name="año_general">
+                <option value="todos" {% if año_general == 'todos' %}selected{% endif %}>Todos los años</option>
                 {% for año in años_disponibles %}
-                    <option value="{{ año }}" {% if año_seleccionado == año %}selected{% endif %}>{{ año }}</option>
+                    <option value="{{ año }}" {% if año_general == año %}selected{% endif %}>{{ año }}</option>
                 {% endfor %}
             </select>
             
-            <button type="submit" class="btn-filtrar">🔍 Filtrar</button>
+            <button type="submit" class="btn-filtrar">🔍 Filtrar Resumen</button>
             <a href="{{ url_for('admin_resumen') }}" class="btn-limpiar">🗑️ Limpiar</a>
         </form>
     </div>
     
-    <!-- Tarjetas principales -->
+    <!-- Tarjetas principales (filtradas por filtro general) -->
     <div class="resumen-grid">
         <div class="resumen-card">
             <h3>💰 Efectivo en caja</h3>
@@ -71,20 +72,46 @@
         </div>
     </div>
     
-    <!-- Título de movimientos -->
+    <!-- MOVIMIENTOS CON FILTROS INDIVIDUALES -->
     <div class="movimientos-header">
         <h3>📋 MOVIMIENTOS</h3>
     </div>
     
-    <!-- Módulos adicionales (con su propio filtro - mismo que el principal) -->
     <div class="mini-modulos">
+        <!-- Ventas a crédito con filtro individual -->
         <div class="modulo">
-            <h3>📋 Ventas a crédito</h3>
+            <div class="modulo-header">
+                <h3>📋 Ventas a crédito</h3>
+                <form method="GET" class="filtro-modulo">
+                    <input type="hidden" name="mes_general" value="{{ mes_general }}">
+                    <input type="hidden" name="año_general" value="{{ año_general }}">
+                    <select name="mes_creditos">
+                        <option value="todos" {% if mes_creditos == 'todos' %}selected{% endif %}>Mes</option>
+                        <option value="01" {% if mes_creditos == '01' %}selected{% endif %}>Ene</option>
+                        <option value="02" {% if mes_creditos == '02' %}selected{% endif %}>Feb</option>
+                        <option value="03" {% if mes_creditos == '03' %}selected{% endif %}>Mar</option>
+                        <option value="04" {% if mes_creditos == '04' %}selected{% endif %}>Abr</option>
+                        <option value="05" {% if mes_creditos == '05' %}selected{% endif %}>May</option>
+                        <option value="06" {% if mes_creditos == '06' %}selected{% endif %}>Jun</option>
+                        <option value="07" {% if mes_creditos == '07' %}selected{% endif %}>Jul</option>
+                        <option value="08" {% if mes_creditos == '08' %}selected{% endif %}>Ago</option>
+                        <option value="09" {% if mes_creditos == '09' %}selected{% endif %}>Sep</option>
+                        <option value="10" {% if mes_creditos == '10' %}selected{% endif %}>Oct</option>
+                        <option value="11" {% if mes_creditos == '11' %}selected{% endif %}>Nov</option>
+                        <option value="12" {% if mes_creditos == '12' %}selected{% endif %}>Dic</option>
+                    </select>
+                    <select name="año_creditos">
+                        <option value="todos" {% if año_creditos == 'todos' %}selected{% endif %}>Año</option>
+                        {% for año in años_disponibles %}
+                            <option value="{{ año }}" {% if año_creditos == año %}selected{% endif %}>{{ año }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn-filtrar-mini">🔍</button>
+                </form>
+            </div>
             {% if creditos_lista %}
                 <table class="mini-table">
-                    <thead>
-                        <tr><th>Cliente</th><th>Total</th><th>Abono</th><th>Pendiente</th><th>Fecha</th></tr>
-                    </thead>
+                    <thead><tr><th>Cliente</th><th>Total</th><th>Abono</th><th>Pendiente</th><th>Fecha</th></tr></thead>
                     <tbody>
                         {% for credito in creditos_lista %}
                         <tr>
@@ -102,13 +129,40 @@
             {% endif %}
         </div>
         
+        <!-- Ventas del período con filtro individual -->
         <div class="modulo">
-            <h3>🛒 Ventas del período</h3>
+            <div class="modulo-header">
+                <h3>🛒 Ventas del período</h3>
+                <form method="GET" class="filtro-modulo">
+                    <input type="hidden" name="mes_general" value="{{ mes_general }}">
+                    <input type="hidden" name="año_general" value="{{ año_general }}">
+                    <select name="mes_ventas">
+                        <option value="todos" {% if mes_ventas == 'todos' %}selected{% endif %}>Mes</option>
+                        <option value="01" {% if mes_ventas == '01' %}selected{% endif %}>Ene</option>
+                        <option value="02" {% if mes_ventas == '02' %}selected{% endif %}>Feb</option>
+                        <option value="03" {% if mes_ventas == '03' %}selected{% endif %}>Mar</option>
+                        <option value="04" {% if mes_ventas == '04' %}selected{% endif %}>Abr</option>
+                        <option value="05" {% if mes_ventas == '05' %}selected{% endif %}>May</option>
+                        <option value="06" {% if mes_ventas == '06' %}selected{% endif %}>Jun</option>
+                        <option value="07" {% if mes_ventas == '07' %}selected{% endif %}>Jul</option>
+                        <option value="08" {% if mes_ventas == '08' %}selected{% endif %}>Ago</option>
+                        <option value="09" {% if mes_ventas == '09' %}selected{% endif %}>Sep</option>
+                        <option value="10" {% if mes_ventas == '10' %}selected{% endif %}>Oct</option>
+                        <option value="11" {% if mes_ventas == '11' %}selected{% endif %}>Nov</option>
+                        <option value="12" {% if mes_ventas == '12' %}selected{% endif %}>Dic</option>
+                    </select>
+                    <select name="año_ventas">
+                        <option value="todos" {% if año_ventas == 'todos' %}selected{% endif %}>Año</option>
+                        {% for año in años_disponibles %}
+                            <option value="{{ año }}" {% if año_ventas == año %}selected{% endif %}>{{ año }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn-filtrar-mini">🔍</button>
+                </form>
+            </div>
             {% if ventas_lista %}
                 <table class="mini-table">
-                    <thead>
-                        <tr><th>Cliente</th><th>Total</th><th>Fecha</th></tr>
-                    </thead>
+                    <thead><tr><th>Cliente</th><th>Total</th><th>Fecha</th></tr></thead>
                     <tbody>
                         {% for venta in ventas_lista %}
                         <tr>
@@ -124,13 +178,40 @@
             {% endif %}
         </div>
         
+        <!-- Gastos recientes con filtro individual -->
         <div class="modulo">
-            <h3>💸 Gastos recientes</h3>
+            <div class="modulo-header">
+                <h3>💸 Gastos recientes</h3>
+                <form method="GET" class="filtro-modulo">
+                    <input type="hidden" name="mes_general" value="{{ mes_general }}">
+                    <input type="hidden" name="año_general" value="{{ año_general }}">
+                    <select name="mes_gastos">
+                        <option value="todos" {% if mes_gastos == 'todos' %}selected{% endif %}>Mes</option>
+                        <option value="01" {% if mes_gastos == '01' %}selected{% endif %}>Ene</option>
+                        <option value="02" {% if mes_gastos == '02' %}selected{% endif %}>Feb</option>
+                        <option value="03" {% if mes_gastos == '03' %}selected{% endif %}>Mar</option>
+                        <option value="04" {% if mes_gastos == '04' %}selected{% endif %}>Abr</option>
+                        <option value="05" {% if mes_gastos == '05' %}selected{% endif %}>May</option>
+                        <option value="06" {% if mes_gastos == '06' %}selected{% endif %}>Jun</option>
+                        <option value="07" {% if mes_gastos == '07' %}selected{% endif %}>Jul</option>
+                        <option value="08" {% if mes_gastos == '08' %}selected{% endif %}>Ago</option>
+                        <option value="09" {% if mes_gastos == '09' %}selected{% endif %}>Sep</option>
+                        <option value="10" {% if mes_gastos == '10' %}selected{% endif %}>Oct</option>
+                        <option value="11" {% if mes_gastos == '11' %}selected{% endif %}>Nov</option>
+                        <option value="12" {% if mes_gastos == '12' %}selected{% endif %}>Dic</option>
+                    </select>
+                    <select name="año_gastos">
+                        <option value="todos" {% if año_gastos == 'todos' %}selected{% endif %}>Año</option>
+                        {% for año in años_disponibles %}
+                            <option value="{{ año }}" {% if año_gastos == año %}selected{% endif %}>{{ año }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn-filtrar-mini">🔍</button>
+                </form>
+            </div>
             {% if gastos_lista %}
                 <table class="mini-table">
-                    <thead>
-                        <tr><th>Concepto</th><th>Monto</th><th>Fecha</th></tr>
-                    </thead>
+                    <thead><tr><th>Concepto</th><th>Monto</th><th>Fecha</th></tr></thead>
                     <tbody>
                         {% for gasto in gastos_lista %}
                         <tr>
@@ -146,13 +227,12 @@
             {% endif %}
         </div>
         
+        <!-- Productos en almacén (sin filtro por fecha, solo listado) -->
         <div class="modulo">
             <h3>📦 Productos en almacén</h3>
             {% if almacen_lista %}
                 <table class="mini-table">
-                    <thead>
-                        <tr><th>Producto</th><th>Cantidad</th><th>Precio Venta</th></tr>
-                    </thead>
+                    <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio Venta</th></tr></thead>
                     <tbody>
                         {% for item in almacen_lista %}
                         <tr>
@@ -168,13 +248,12 @@
             {% endif %}
         </div>
         
+        <!-- Productos nuevos pendientes (sin filtro por fecha) -->
         <div class="modulo">
             <h3>🆕 Productos nuevos pendientes</h3>
             {% if nuevos_lista %}
                 <table class="mini-table">
-                    <thead>
-                        <tr><th>Producto</th><th>Cantidad</th><th>Precio Venta</th></tr>
-                    </thead>
+                    <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio Venta</th></tr></thead>
                     <tbody>
                         {% for item in nuevos_lista %}
                         <tr>
@@ -226,6 +305,11 @@
         padding: 15px;
         border-radius: 10px;
         margin-bottom: 20px;
+    }
+    .filtro-general h3 {
+        margin: 0 0 10px 0;
+        font-size: 1rem;
+        color: #1f4e6e;
     }
     .filtros-form {
         display: flex;
@@ -287,7 +371,7 @@
     }
     .mini-modulos {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
         gap: 20px;
         margin-top: 20px;
     }
@@ -297,11 +381,39 @@
         border-radius: 10px;
         border: 1px solid #ddd;
     }
+    .modulo-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
     .modulo h3 {
         color: #1f4e6e;
-        margin-top: 0;
-        border-bottom: 2px solid #1f4e6e;
-        padding-bottom: 5px;
+        margin: 0;
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    .filtro-modulo {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+    }
+    .filtro-modulo select {
+        padding: 4px 8px;
+        border-radius: 15px;
+        border: 1px solid #ddd;
+        font-size: 12px;
+    }
+    .btn-filtrar-mini {
+        background: #1f4e6e;
+        color: white;
+        border: none;
+        padding: 4px 10px;
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 12px;
     }
     .mini-table {
         width: 100%;
@@ -326,6 +438,10 @@
         }
         .total-card {
             grid-column: span 1;
+        }
+        .modulo-header {
+            flex-direction: column;
+            align-items: flex-start;
         }
     }
 </style>
