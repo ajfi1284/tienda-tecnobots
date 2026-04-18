@@ -8,7 +8,11 @@
         <div class="product-image">
             {% set imagenes = producto.imagenes if producto.imagenes else [] %}
             {% if imagenes %}
-                <img src="{{ imagenes[0].imagen_url }}" style="width:100%; max-height:150px; object-fit:contain;">
+                <div class="miniaturas">
+                    {% for img in imagenes[:4] %}
+                        <img src="{{ img.imagen_url }}" class="miniatura" data-img="{{ img.imagen_url }}" data-index="{{ loop.index0 }}">
+                    {% endfor %}
+                </div>
             {% else %}
                 <img src="{{ url_for('static', filename='images/placeholder.png') }}" style="width:100%; max-height:150px; object-fit:contain;">
             {% endif %}
@@ -30,13 +34,18 @@
     {% endfor %}
 </div>
 
-<!-- Modal con imagen -->
+<!-- Modal con imagen y miniaturas -->
 <div id="productModal" class="modal">
     <div class="modal-content">
         <span class="close">&times;</span>
         <div class="modal-body">
             <div class="modal-image">
-                <img id="modalImagen" src="" style="max-width:100%; max-height:200px; object-fit:contain;">
+                <div class="modal-gallery">
+                    <button class="modal-prev" id="modalPrev">◀</button>
+                    <img id="modalImagen" src="" style="max-width:100%; max-height:250px; object-fit:contain;">
+                    <button class="modal-next" id="modalNext">▶</button>
+                </div>
+                <div id="modalThumbs" class="modal-thumbs" style="display:flex; gap:5px; justify-content:center; margin-top:10px;"></div>
             </div>
             <div class="modal-info">
                 <h2 id="modalNombre"></h2>
@@ -67,6 +76,24 @@
     }
     .product-card:hover {
         transform: translateY(-5px);
+    }
+    .miniaturas {
+        display: flex;
+        gap: 5px;
+        justify-content: center;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }
+    .miniatura {
+        width: 55px;
+        height: 55px;
+        object-fit: cover;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+    .miniatura:hover {
+        border-color: #1f4e6e;
     }
     .price {
         font-size: 1.3rem;
@@ -109,7 +136,7 @@
         margin: 5% auto;
         padding: 20px;
         width: 80%;
-        max-width: 800px;
+        max-width: 900px;
         border-radius: 15px;
         position: relative;
     }
@@ -127,8 +154,41 @@
     }
     .modal-image {
         flex: 1;
-        min-width: 200px;
+        min-width: 250px;
         text-align: center;
+    }
+    .modal-gallery {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    .modal-prev, .modal-next {
+        background: #1f4e6e;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        cursor: pointer;
+        font-size: 18px;
+    }
+    .modal-thumbs {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 10px;
+    }
+    .modal-thumb {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+    .modal-thumb.active {
+        border-color: #1f4e6e;
     }
     .modal-info {
         flex: 1;
@@ -151,22 +211,55 @@
             precio: {{ producto.precio_venta }},
             stock: {{ producto.cantidad }},
             descripcion: `{{ producto.descripcion|replace('\\n', ' ')|replace('"', '\\"')|safe if producto.descripcion else '' }}`,
-            imagen: "{{ imagenes[0].imagen_url if imagenes else url_for('static', filename='images/placeholder.png') }}"
+            imagenes: [
+                {% for img in imagenes %}
+                    "{{ img.imagen_url }}",
+                {% endfor %}
+            ]
         };
     {% endfor %}
     
     var modal = document.getElementById('productModal');
     var span = document.getElementsByClassName('close')[0];
+    var currentImages = [];
+    var currentImageIndex = 0;
     
     function openProductModal(productId) {
         var product = window.productosData[productId];
         if (!product) return;
         
-        document.getElementById('modalImagen').src = product.imagen;
+        currentImages = product.imagenes || [];
+        currentImageIndex = 0;
+        
+        document.getElementById('modalImagen').src = currentImages.length > 0 ? currentImages[0] : "{{ url_for('static', filename='images/placeholder.png') }}";
         document.getElementById('modalNombre').innerText = product.nombre;
         document.getElementById('modalPrecio').innerText = `Precio: $${product.precio.toFixed(2)}`;
         document.getElementById('modalStock').innerHTML = product.stock > 0 ? `Stock disponible: ${product.stock}` : 'Agotado';
         document.getElementById('modalDescripcion').innerText = product.descripcion || 'Sin descripción disponible.';
+        
+        // Generar miniaturas
+        var thumbsContainer = document.getElementById('modalThumbs');
+        thumbsContainer.innerHTML = '';
+        if (currentImages.length > 0) {
+            currentImages.forEach((img, idx) => {
+                var thumb = document.createElement('img');
+                thumb.src = img;
+                thumb.classList.add('modal-thumb');
+                if (idx === 0) thumb.classList.add('active');
+                thumb.onclick = function() {
+                    document.getElementById('modalImagen').src = img;
+                    currentImageIndex = idx;
+                    document.querySelectorAll('.modal-thumb').forEach(t => t.classList.remove('active'));
+                    thumb.classList.add('active');
+                };
+                thumbsContainer.appendChild(thumb);
+            });
+        } else {
+            var placeholder = document.createElement('img');
+            placeholder.src = "{{ url_for('static', filename='images/placeholder.png') }}";
+            placeholder.classList.add('modal-thumb');
+            thumbsContainer.appendChild(placeholder);
+        }
         
         modal.style.display = 'block';
     }
@@ -181,8 +274,36 @@
         }
     }
     
+    document.getElementById('modalPrev').onclick = function() {
+        if (currentImages.length > 0 && currentImageIndex - 1 >= 0) {
+            currentImageIndex--;
+            document.getElementById('modalImagen').src = currentImages[currentImageIndex];
+            document.querySelectorAll('.modal-thumb').forEach((thumb, idx) => {
+                if (idx === currentImageIndex) {
+                    thumb.classList.add('active');
+                } else {
+                    thumb.classList.remove('active');
+                }
+            });
+        }
+    }
+    
+    document.getElementById('modalNext').onclick = function() {
+        if (currentImages.length > 0 && currentImageIndex + 1 < currentImages.length) {
+            currentImageIndex++;
+            document.getElementById('modalImagen').src = currentImages[currentImageIndex];
+            document.querySelectorAll('.modal-thumb').forEach((thumb, idx) => {
+                if (idx === currentImageIndex) {
+                    thumb.classList.add('active');
+                } else {
+                    thumb.classList.remove('active');
+                }
+            });
+        }
+    }
+    
     document.getElementById('modalAgregarCarrito').onclick = function() {
-        alert('Función agregar al carrito desde modal');
+        alert('Producto agregado al carrito desde el modal');
         modal.style.display = 'none';
     }
 </script>
