@@ -207,7 +207,6 @@
         cursor: not-allowed;
     }
     
-    /* Modal de imagen/video */
     .modal {
         display: none;
         position: fixed;
@@ -282,7 +281,6 @@
         font-size: 16px;
     }
     
-    /* Modal de producto (detalle) */
     .modal-product {
         display: none;
         position: fixed;
@@ -511,7 +509,6 @@
         document.getElementById('modalProductNameInput').value = product.nombre;
         document.getElementById('modalProductPriceInput').value = product.precio;
         
-        // Mostrar primer media
         var mediaContainer = document.getElementById('modalProductMedia');
         if (product.media.length > 0) {
             var firstMedia = product.media[0];
@@ -522,33 +519,32 @@
             }
         }
         
-        // Mostrar miniaturas
         var thumbsContainer = document.getElementById('modalProductThumbs');
         thumbsContainer.innerHTML = '';
         product.media.forEach((media, idx) => {
-            var thumb = document.createElement('div');
+            var thumbDiv = document.createElement('div');
             if (media.es_video) {
-                thumb.innerHTML = `<video class="modal-thumb" muted playsinline style="width:60px; height:60px; object-fit:cover;"><source src="${media.url}" type="video/mp4"></video>`;
+                thumbDiv.innerHTML = `<video class="modal-thumb" muted playsinline style="width:60px; height:60px; object-fit:cover;"><source src="${media.url}" type="video/mp4"></video>`;
             } else {
-                thumb.innerHTML = `<img src="${media.url}" class="modal-thumb">`;
+                thumbDiv.innerHTML = `<img src="${media.url}" class="modal-thumb">`;
             }
-            if (idx === 0) thumb.querySelector('img, video').classList.add('active');
-            thumb.onclick = function() {
+            var thumbElement = thumbDiv.querySelector('video, img');
+            if (idx === 0) thumbElement.classList.add('active');
+            thumbDiv.onclick = function() {
                 if (media.es_video) {
                     mediaContainer.innerHTML = `<video controls autoplay class="modal-product-video" style="max-width:100%; max-height:300px;"><source src="${media.url}" type="video/mp4"></video>`;
                 } else {
                     mediaContainer.innerHTML = `<img src="${media.url}" class="modal-product-img">`;
                 }
                 document.querySelectorAll('.modal-thumb').forEach(t => t.classList.remove('active'));
-                thumb.querySelector('img, video').classList.add('active');
+                thumbElement.classList.add('active');
             };
-            thumbsContainer.appendChild(thumb);
+            thumbsContainer.appendChild(thumbDiv);
         });
         
         document.getElementById('productModal').style.display = 'block';
     }
     
-    // Eventos de navegación en galería pequeña
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('next-btn')) {
             e.stopPropagation();
@@ -578,7 +574,6 @@
         }
     });
     
-    // Eventos del modal
     document.getElementById('modalPrev').addEventListener('click', function() {
         if (currentMediaList.length > 0 && currentMediaIndex - 1 >= 0) {
             currentMediaIndex--;
@@ -636,21 +631,20 @@
     document.querySelector('.close').addEventListener('click', function() {
         document.getElementById('imageModal').style.display = 'none';
         var modalVideo = document.getElementById('modalVideo');
-        modalVideo.pause();
+        if (modalVideo) modalVideo.pause();
     });
     
     window.addEventListener('click', function(e) {
         if (e.target == document.getElementById('imageModal')) {
             document.getElementById('imageModal').style.display = 'none';
             var modalVideo = document.getElementById('modalVideo');
-            modalVideo.pause();
+            if (modalVideo) modalVideo.pause();
         }
         if (e.target == document.getElementById('productModal')) {
             document.getElementById('productModal').style.display = 'none';
         }
     });
     
-    // Zoom (solo para imágenes)
     document.getElementById('zoomIn').addEventListener('click', function() {
         currentZoom += 0.2;
         document.getElementById('modalImage').style.transform = `scale(${currentZoom})`;
@@ -682,5 +676,7 @@
             }
         }
     });
+    
+    console.log("JavaScript cargado correctamente");
 </script>
 {% endblock %}
