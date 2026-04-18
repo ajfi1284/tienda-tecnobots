@@ -4,19 +4,19 @@
 <h2>Nuestros Productos</h2>
 <div class="products-grid" id="products-grid">
     {% for producto in productos %}
-    <div class="product-card {% if producto.cantidad == 0 %}out-of-stock{% endif %}" data-producto-id="{{ producto.id }}">
-        <div class="product-image">
+    <div class="product-card {% if producto.cantidad == 0 %}out-of-stock{% endif %}" data-producto-id="{{ producto.id }}" onclick="openProductModal({{ producto.id }})">
+        <div class="product-image" onclick="event.stopPropagation()">
             {% set imagenes = producto.imagenes if producto.imagenes else [] %}
             {% if imagenes %}
                 <div class="miniaturas">
                     {% for img in imagenes[:4] %}
-                        <img src="{{ img.imagen_url }}" alt="{{ producto.nombre }}" class="miniatura" data-img="{{ img.imagen_url }}" data-index="{{ loop.index0 }}" data-id="{{ producto.id }}">
+                        <img src="{{ img.imagen_url }}" alt="{{ producto.nombre }}" class="miniatura" data-img="{{ img.imagen_url }}" data-index="{{ loop.index0 }}" data-id="{{ producto.id }}" onclick="event.stopPropagation(); openImageModal({{ producto.id }}, {{ loop.index0 }})">
                     {% endfor %}
                 </div>
                 <div class="galeria-nav" style="margin-top: 10px;">
-                    <button class="prev-btn" data-id="{{ producto.id }}" data-index="0">◀</button>
+                    <button class="prev-btn" data-id="{{ producto.id }}" data-index="0" onclick="event.stopPropagation()">◀</button>
                     <span class="contador" data-id="{{ producto.id }}">1/{{ imagenes|length }}</span>
-                    <button class="next-btn" data-id="{{ producto.id }}" data-index="0">▶</button>
+                    <button class="next-btn" data-id="{{ producto.id }}" data-index="0" onclick="event.stopPropagation()">▶</button>
                 </div>
             {% else %}
                 <img src="{{ url_for('static', filename='images/placeholder.png') }}" alt="Sin imagen">
@@ -26,10 +26,10 @@
         <p class="price">${{ "%.2f"|format(producto.precio_venta) }}</p>
         {% if producto.cantidad == 0 %}
             <p class="stock stock-zero">Stock: 0</p>
-            <button class="btn-disabled" disabled>❌ Agotado</button>
+            <button class="btn-disabled" disabled onclick="event.stopPropagation()">❌ Agotado</button>
         {% else %}
             <p class="stock">Stock: {{ producto.cantidad }}</p>
-            <form method="POST" action="{{ url_for('add_to_cart') }}" class="add-to-cart-form">
+            <form method="POST" action="{{ url_for('add_to_cart') }}" class="add-to-cart-form" onclick="event.stopPropagation()">
                 <input type="hidden" name="product_id" value="{{ producto.nombre }}">
                 <input type="hidden" name="product_name" value="{{ producto.nombre }}">
                 <input type="hidden" name="product_price" value="{{ producto.precio_venta }}">
@@ -93,18 +93,20 @@
         margin-top: 20px;
     }
     .product-card {
-        background: white;
+        background: linear-gradient(135deg, #e8d5f5 0%, #d4b8e8 100%);
         border-radius: 15px;
         padding: 15px;
         text-align: center;
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        transition: transform 0.3s;
+        transition: transform 0.3s, box-shadow 0.3s;
+        cursor: pointer;
     }
     .product-card:hover {
         transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
     }
     .product-card.out-of-stock {
-        background: #e0e0e0;
+        background: linear-gradient(135deg, #d4c4e0, #c0a8d4);
         opacity: 0.8;
     }
     .product-image {
@@ -156,23 +158,18 @@
     .producto-nombre {
         font-size: 1.1rem;
         margin: 15px 0 5px;
-        color: #1f4e6e;
-        cursor: pointer;
-        text-decoration: underline;
-        text-decoration-color: transparent;
+        color: #4a2c6e;
+        text-decoration: none;
         transition: 0.2s;
-    }
-    .producto-nombre:hover {
-        text-decoration-color: #1f4e6e;
     }
     .price {
         font-size: 1.3rem;
         font-weight: bold;
-        color: #1f4e6e;
+        color: #4a2c6e;
         margin: 10px 0;
     }
     .stock {
-        color: green;
+        color: #2c5a2e;
         font-size: 0.85rem;
     }
     .stock-zero {
@@ -180,13 +177,16 @@
         font-weight: bold;
     }
     .btn-add {
-        background: #1f4e6e;
+        background: #6a3d9e;
         color: white;
         border: none;
         padding: 8px 16px;
         border-radius: 25px;
         cursor: pointer;
         width: 100%;
+    }
+    .btn-add:hover {
+        background: #8a5bc4;
     }
     .btn-disabled {
         background: #999;
@@ -498,8 +498,10 @@
         document.getElementById('productModal').style.display = 'block';
     }
     
+    // Eventos de navegación en galería pequeña
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('next-btn')) {
+            e.stopPropagation();
             let productoId = parseInt(e.target.getAttribute('data-id'));
             let indiceActual = parseInt(e.target.getAttribute('data-index'));
             let imagenes = window.imagenesData[productoId];
@@ -507,7 +509,9 @@
                 cambiarImagen(productoId, indiceActual + 1, imagenes);
             }
         }
+        
         if (e.target.classList.contains('prev-btn')) {
+            e.stopPropagation();
             let productoId = parseInt(e.target.getAttribute('data-id'));
             let indiceActual = parseInt(e.target.getAttribute('data-index'));
             let imagenes = window.imagenesData[productoId];
@@ -515,14 +519,12 @@
                 cambiarImagen(productoId, indiceActual - 1, imagenes);
             }
         }
+        
         if (e.target.classList.contains('miniatura')) {
+            e.stopPropagation();
             let productoId = parseInt(e.target.getAttribute('data-id'));
             let index = parseInt(e.target.getAttribute('data-index'));
             openImageModal(productoId, index);
-        }
-        if (e.target.classList.contains('producto-nombre')) {
-            let productoId = parseInt(e.target.getAttribute('data-id'));
-            openProductModal(productoId);
         }
     });
     
