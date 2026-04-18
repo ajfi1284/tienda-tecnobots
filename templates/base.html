@@ -14,18 +14,14 @@
         padding: 0;
     }
     
-    header {
-        background: #cce7ff !important;
-        padding: 15px 0;
-        border-bottom: 2px solid #2c7da0;
-    }
-    
     main {
-        background: #e8ecf1;
+        background-image: url('https://images.pexels.com/photos/2760249/pexels-photo-2760249.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1');
+        background-size: 100% 100%;  /* ANCHO = 100%, ALTO = 100% */
+        background-position: center center;
+        background-repeat: no-repeat;
         min-height: 100vh;
     }
     
-    /* El resto de estilos igual que antes */
     .header-container {
         display: flex;
         align-items: center;
@@ -33,9 +29,11 @@
         gap: 15px;
         flex-wrap: wrap;
     }
+    
     .logo {
         flex-shrink: 0;
     }
+    
     .logo img {
         max-height: 90px;
         max-width: 100%;
@@ -45,9 +43,11 @@
         display: block;
         border-radius: 0 !important;
     }
+    
     .brand {
         flex-shrink: 0;
     }
+    
     .brand h1 {
         letter-spacing: 12px;
         font-size: 90px;
@@ -56,12 +56,20 @@
         color: white;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
     }
+    
     .header-actions {
         display: flex;
         align-items: center;
         gap: 15px;
         flex-shrink: 0;
     }
+    
+    header {
+        background: #cce7ff !important;
+        padding: 15px 0;
+        border-bottom: 2px solid #2c7da0;
+    }
+    
     @media (max-width: 768px) {
         .brand h1 {
             font-size: 24px;
