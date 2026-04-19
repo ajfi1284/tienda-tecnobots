@@ -33,6 +33,12 @@
                 <input type="hidden" name="product_id" value="{{ producto.nombre }}">
                 <input type="hidden" name="product_name" value="{{ producto.nombre }}">
                 <input type="hidden" name="product_price" value="{{ producto.precio_venta }}">
+                <input type="hidden" name="cantidad" id="cantidad-{{ producto.id }}" value="1">
+                <div class="cantidad-selector">
+                    <button type="button" class="btn-cantidad menos" onclick="event.stopPropagation(); cambiarCantidad(this, -1, {{ producto.id }})">-</button>
+                    <span class="cantidad-valor" id="cantidad-valor-{{ producto.id }}">1</span>
+                    <button type="button" class="btn-cantidad mas" onclick="event.stopPropagation(); cambiarCantidad(this, 1, {{ producto.id }})">+</button>
+                </div>
                 <button type="submit" class="btn-add">Agregar al carrito</button>
             </form>
         {% endif %}
@@ -74,10 +80,16 @@
                 <p class="modal-product-price" id="modalProductPrice"></p>
                 <p class="modal-product-stock" id="modalProductStock"></p>
                 <p class="modal-product-desc" id="modalProductDesc"></p>
+                <div class="cantidad-selector-modal">
+                    <button type="button" class="btn-cantidad-modal menos" id="modalCantidadMenos">-</button>
+                    <span id="modalCantidadValor">1</span>
+                    <button type="button" class="btn-cantidad-modal mas" id="modalCantidadMas">+</button>
+                </div>
                 <form id="modalAddToCartForm" method="POST" action="{{ url_for('add_to_cart') }}">
                     <input type="hidden" name="product_id" id="modalProductId">
                     <input type="hidden" name="product_name" id="modalProductNameInput">
                     <input type="hidden" name="product_price" id="modalProductPriceInput">
+                    <input type="hidden" name="cantidad" id="modalCantidadInput" value="1">
                     <button type="submit" class="btn-add-modal">🛒 Agregar al carrito</button>
                 </form>
             </div>
@@ -120,12 +132,15 @@
         flex-wrap: wrap;
     }
     .miniatura {
-    width: 55px !important;
-    height: 55px !important;
-    object-fit: cover !important;
-    object-position: center !important;
-    ...
-}
+        width: 70px;
+        height: 70px;
+        object-fit: contain;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: 0.2s;
+        background: #f0f0f0;
+    }
     .miniatura:hover {
         border-color: #1f4e6e;
         transform: scale(1.05);
@@ -170,6 +185,39 @@
     .stock-zero {
         color: red;
         font-weight: bold;
+    }
+    .cantidad-selector {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin: 10px 0;
+    }
+    .cantidad-selector-modal {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin: 15px 0;
+    }
+    .btn-cantidad, .btn-cantidad-modal {
+        background: #1f4e6e;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        font-size: 18px;
+    }
+    .btn-cantidad:hover, .btn-cantidad-modal:hover {
+        background: #2c7da0;
+    }
+    .cantidad-valor {
+        font-size: 1.2rem;
+        font-weight: bold;
+        min-width: 30px;
+        text-align: center;
     }
     .btn-add {
         background: #6a3d9e;
@@ -280,7 +328,7 @@
         background-color: rgba(0,0,0,0.8);
     }
     .modal-product-content {
-        background-color: #cce7ff !important;
+        background-color: #cce7ff;
         margin: 5% auto;
         padding: 20px;
         width: 80%;
@@ -417,6 +465,17 @@
     var currentImageIndex = 0;
     var currentImagesList = [];
     var currentZoom = 1;
+    var modalCantidad = 1;
+    
+    function cambiarCantidad(btn, delta, productId) {
+        var valorSpan = document.getElementById('cantidad-valor-' + productId);
+        var inputHidden = document.getElementById('cantidad-' + productId);
+        var nuevoValor = parseInt(valorSpan.innerText) + delta;
+        if (nuevoValor >= 1 && nuevoValor <= 5) {
+            valorSpan.innerText = nuevoValor;
+            inputHidden.value = nuevoValor;
+        }
+    }
     
     function cambiarImagen(productoId, nuevoIndice, imagenes) {
         let miniaturas = document.querySelectorAll(`.miniatura[data-id='${productoId}']`);
@@ -465,6 +524,10 @@
     function openProductModal(productId) {
         var product = window.productosData[productId];
         if (!product) return;
+        
+        modalCantidad = 1;
+        document.getElementById('modalCantidadValor').innerText = modalCantidad;
+        document.getElementById('modalCantidadInput').value = modalCantidad;
         document.getElementById('modalProductName').innerText = product.nombre;
         document.getElementById('modalProductPrice').innerText = `$${product.precio.toFixed(2)}`;
         document.getElementById('modalProductStock').innerHTML = product.stock > 0 ? `✅ Stock disponible: ${product.stock}` : '❌ Agotado';
@@ -491,6 +554,22 @@
         });
         document.getElementById('productModal').style.display = 'block';
     }
+    
+    document.getElementById('modalCantidadMenos').addEventListener('click', function() {
+        if (modalCantidad > 1) {
+            modalCantidad--;
+            document.getElementById('modalCantidadValor').innerText = modalCantidad;
+            document.getElementById('modalCantidadInput').value = modalCantidad;
+        }
+    });
+    
+    document.getElementById('modalCantidadMas').addEventListener('click', function() {
+        if (modalCantidad < 5) {
+            modalCantidad++;
+            document.getElementById('modalCantidadValor').innerText = modalCantidad;
+            document.getElementById('modalCantidadInput').value = modalCantidad;
+        }
+    });
     
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('next-btn')) {
