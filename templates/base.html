@@ -100,7 +100,8 @@
                     </button>
                     <div class="dropdown-content">
                         {% if session.get('admin_logged') %}
-                            <!-- ADMINISTRADOR: solo cambio de contraseña y cerrar sesión -->
+                            <!-- ADMINISTRADOR -->
+                            <a href="{{ url_for('admin_dashboard') }}">💰 Resumen</a>
                             <a href="{{ url_for('cambiar_password') }}">🔐 Cambiar contraseña</a>
                             <a href="{{ url_for('admin_logout') }}">🚪 Cerrar sesión</a>
                         {% elif current_user.is_authenticated %}
