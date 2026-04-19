@@ -53,8 +53,9 @@ def guardar_admin_password(nueva_password):
     """Guarda la nueva contraseña del administrador en Supabase"""
     try:
         print(f"🔐 Intentando guardar: {nueva_password}")
-        supabase.table("configuracion").update({"valor": nueva_password}).eq("clave", "admin_password").execute()
-        print(f"✅ Contraseña guardada correctamente")
+        # Usar upsert en lugar de update
+        result = supabase.table("configuracion").upsert({"clave": "admin_password", "valor": nueva_password}).execute()
+        print(f"📦 Resultado upsert: {result}")
         return True
     except Exception as e:
         print(f"❌ Error guardando: {e}")
