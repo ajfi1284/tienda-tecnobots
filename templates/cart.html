@@ -18,11 +18,17 @@
             <tbody>
                 {% for key, item in cart.items() %}
                 <tr>
-                    <td>{{ item.name }}</td>
-                    <td>{{ item.quantity }}</td>
-                    <td>${{ "%.2f"|format(item.price) }}</td>
-                    <td>${{ "%.2f"|format(item.price * item.quantity) }}</td>
-                    <td>
+                    <td data-label="Producto">{{ item.name }}</td>
+                    <td data-label="Cantidad">
+                        <div class="cantidad-carrito">
+                            <button class="btn-cantidad-carrito" data-key="{{ key }}" data-delta="-1">-</button>
+                            <span id="cantidad-{{ key }}">{{ item.quantity }}</span>
+                            <button class="btn-cantidad-carrito" data-key="{{ key }}" data-delta="1">+</button>
+                        </div>
+                    </td>
+                    <td data-label="Precio unitario">${{ "%.2f"|format(item.price) }}</td>
+                    <td data-label="Subtotal">${{ "%.2f"|format(item.price * item.quantity) }}</td>
+                    <td data-label="Acción">
                         <form method="POST" action="{{ url_for('remove_from_cart') }}">
                             <input type="hidden" name="product_id" value="{{ key }}">
                             <button type="submit" class="btn-remove">🗑️ Eliminar</button>
@@ -39,7 +45,6 @@
             </tfoot>
         </table>
         
-        <!-- Opción Delivery -->
         <div class="delivery-option">
             <label class="delivery-checkbox">
                 <input type="checkbox" id="deliveryCheckbox">
@@ -94,6 +99,24 @@
         background: #f0f0f0;
         font-size: 1.2rem;
     }
+    .cantidad-carrito {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .btn-cantidad-carrito {
+        background: #1f4e6e;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 25px;
+        height: 25px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .btn-cantidad-carrito:hover {
+        background: #2c7da0;
+    }
     .btn-remove {
         background: #dc3545;
         color: white;
@@ -105,8 +128,6 @@
     .btn-remove:hover {
         background: #c82333;
     }
-    
-    /* Estilos para el checkbox de delivery */
     .delivery-option {
         margin: 20px 0;
         padding: 15px;
@@ -128,7 +149,6 @@
         height: 20px;
         cursor: pointer;
     }
-    
     .cart-actions {
         display: flex;
         justify-content: space-between;
@@ -158,10 +178,20 @@
         font-size: 1.2rem;
         margin-bottom: 20px;
     }
+    @media (max-width: 600px) {
+        .cart-table th, .cart-table td {
+            padding: 8px;
+            font-size: 12px;
+        }
+        .btn-cantidad-carrito {
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
+        }
+    }
 </style>
 
 <script>
-    // Manejar el checkbox de delivery
     document.getElementById('deliveryCheckbox').addEventListener('change', function() {
         var deliveryInput = document.getElementById('deliveryInput');
         if (this.checked) {
@@ -169,6 +199,29 @@
         } else {
             deliveryInput.value = 'no';
         }
+    });
+    
+    document.querySelectorAll('.btn-cantidad-carrito').forEach(btn => {
+        btn.addEventListener('click', function() {
+            var key = this.getAttribute('data-key');
+            var delta = parseInt(this.getAttribute('data-delta'));
+            var cantidadSpan = document.getElementById('cantidad-' + key);
+            var nuevaCantidad = parseInt(cantidadSpan.innerText) + delta;
+            
+            if (nuevaCantidad >= 1 && nuevaCantidad <= 5) {
+                fetch('/update_cart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'product_id=' + encodeURIComponent(key) + '&cantidad=' + nuevaCantidad
+                }).then(response => response.json()).then(data => {
+                    if (data.success) {
+                        location.reload();
+                    }
+                });
+            }
+        });
     });
 </script>
 {% endblock %}
