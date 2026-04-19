@@ -125,11 +125,10 @@
     }
     .miniaturas {
         display: flex;
-        gap: 5px;
+        gap: 2px;
         justify-content: center;
         margin-bottom: 10px;
-        flex-wrap: nowrap;
-        overflow-x: auto;
+        flex-wrap: wrap;
     }
 
     .miniatura {
@@ -139,8 +138,8 @@
         object-position: center;
         border-radius: 4px;
         cursor: pointer;
-        border: 2px solid transparent;
-        flex-shrink: 0;
+        border: 1px solid #ddd;
+        transition: 0.2s;
     }
     .miniatura:hover {
         border-color: #1f4e6e;
