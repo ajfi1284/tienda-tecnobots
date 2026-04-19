@@ -164,23 +164,24 @@
     }
     .miniaturas {
         display: flex;
-        gap: 5px;
+        gap: 8px;
         justify-content: center;
         margin-bottom: 10px;
         flex-wrap: nowrap;
         overflow-x: auto;
+        padding: 5px;
     }
 
     .miniatura {
-        width: 70px;
-        height: 70px;
+        width: 60px;
+        height: 60px;
         object-fit: cover;
         object-position: center;
         border-radius: 8px;
         cursor: pointer;
         border: 2px solid transparent;
         transition: 0.2s;
-        background: #f0f0f0;
+        background: transparent;
         flex-shrink: 0;
     }
     .miniatura:hover {
