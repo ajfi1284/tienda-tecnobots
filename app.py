@@ -316,18 +316,19 @@ def add_to_cart():
     product_id = request.form.get('product_id')
     product_name = request.form.get('product_name')
     product_price = float(request.form.get('product_price'))
+    cantidad = int(request.form.get('cantidad', 1))
     
     if 'cart' not in session:
         session['cart'] = {}
     
     cart = session['cart']
     if product_id in cart:
-        cart[product_id]['quantity'] += 1
+        cart[product_id]['quantity'] += cantidad
     else:
         cart[product_id] = {
             'name': product_name,
             'price': product_price,
-            'quantity': 1
+            'quantity': cantidad
         }
     session['cart'] = cart
     return redirect(url_for('index'))
@@ -341,6 +342,20 @@ def remove_from_cart():
         session.modified = True
     
     return redirect(url_for('cart'))
+
+@app.route('/update_cart', methods=['POST'])
+def update_cart():
+    product_id = request.form.get('product_id')
+    cantidad = int(request.form.get('cantidad'))
+    
+    if 'cart' in session and product_id in session['cart']:
+        if cantidad <= 0:
+            del session['cart'][product_id]
+        else:
+            session['cart'][product_id]['quantity'] = cantidad
+        session.modified = True
+        return jsonify({'success': True})
+    return jsonify({'success': False})
 
 @app.route('/checkout', methods=['POST'])
 @login_required
