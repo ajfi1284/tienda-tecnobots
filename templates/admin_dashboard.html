@@ -14,39 +14,41 @@
         <a href="{{ url_for('admin_producto_nuevo') }}" class="btn-nuevo">+ Nuevo Producto</a>
     </div>
     
-    <table class="productos-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Precio Venta</th>
-                <th>Cantidad</th>
-                <th>Precio Compra</th>
-                <th>% Envío</th>
-                <th>% Ganancia</th>
-                <th>Precio Estimado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for producto in productos %}
-            <tr>
-                <td>{{ producto.id }}</td>
-                <td>{{ producto.nombre }}</td>
-                <td>${{ "%.2f"|format(producto.precio_venta) }}</td>
-                <td>{{ producto.cantidad }}</td>
-                <td>${{ "%.2f"|format(producto.precio_compra) }}</td>
-                <td>{{ producto.porcentaje_envio }}%</td>
-                <td>{{ producto.porcentaje_ganancia }}%</td>
-                <td>${{ "%.2f"|format(producto.precio_estimado) }}</td>
-                <td>
-                    <a href="{{ url_for('admin_producto_editar', id=producto.id) }}" class="btn-editar">✏️ Editar</a>
-                    <a href="{{ url_for('admin_producto_eliminar', id=producto.id) }}" class="btn-eliminar" onclick="return confirm('¿Eliminar este producto?')">🗑️ Eliminar</a>
-                 </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="productos-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Precio Venta</th>
+                    <th>Cantidad</th>
+                    <th>Precio Compra</th>
+                    <th>% Envío</th>
+                    <th>% Ganancia</th>
+                    <th>Precio Estimado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for producto in productos %}
+                <tr>
+                    <td data-label="ID">{{ producto.id }}</td>
+                    <td data-label="Nombre">{{ producto.nombre }}</td>
+                    <td data-label="Precio Venta">${{ "%.2f"|format(producto.precio_venta) }}</td>
+                    <td data-label="Cantidad">{{ producto.cantidad }}</td>
+                    <td data-label="Precio Compra">${{ "%.2f"|format(producto.precio_compra) }}</td>
+                    <td data-label="% Envío">{{ producto.porcentaje_envio }}%</td>
+                    <td data-label="% Ganancia">{{ producto.porcentaje_ganancia }}%</td>
+                    <td data-label="Precio Estimado">${{ "%.2f"|format(producto.precio_estimado) }}</td>
+                    <td data-label="Acciones" class="acciones">
+                        <a href="{{ url_for('admin_producto_editar', id=producto.id) }}" class="btn-editar">✏️ Editar</a>
+                        <a href="{{ url_for('admin_producto_eliminar', id=producto.id) }}" class="btn-eliminar" onclick="return confirm('¿Eliminar este producto?')">🗑️ Eliminar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <style>
@@ -88,35 +90,64 @@
         padding: 10px 20px;
         border-radius: 25px;
         text-decoration: none;
+        display: inline-block;
+    }
+    .table-responsive {
+        overflow-x: auto;
     }
     .productos-table {
         width: 100%;
         border-collapse: collapse;
+        min-width: 800px;
     }
     .productos-table th, .productos-table td {
         border: 1px solid #ddd;
-        padding: 10px;
+        padding: 12px;
         text-align: left;
+        vertical-align: middle;
     }
     .productos-table th {
         background: #1f4e6e;
         color: white;
+        font-weight: 600;
+    }
+    .acciones {
+        white-space: nowrap;
+        text-align: center;
     }
     .btn-editar {
         background: #ffc107;
         color: #333;
-        padding: 5px 10px;
-        border-radius: 15px;
+        padding: 6px 12px;
+        border-radius: 20px;
         text-decoration: none;
         font-size: 12px;
+        display: inline-block;
+        margin-right: 8px;
     }
     .btn-eliminar {
         background: #dc3545;
         color: white;
-        padding: 5px 10px;
-        border-radius: 15px;
+        padding: 6px 12px;
+        border-radius: 20px;
         text-decoration: none;
         font-size: 12px;
+        display: inline-block;
+    }
+    
+    @media (max-width: 768px) {
+        .productos-table th {
+            font-size: 12px;
+            padding: 8px;
+        }
+        .productos-table td {
+            padding: 8px;
+            font-size: 12px;
+        }
+        .btn-editar, .btn-eliminar {
+            padding: 4px 8px;
+            font-size: 10px;
+        }
     }
 </style>
 {% endblock %}
