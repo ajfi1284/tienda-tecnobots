@@ -126,25 +126,26 @@
     .miniaturas {
         display: flex !important;
         flex-direction: row !important;
-        gap: -10px !important;   
+        flex-wrap: nowrap !important;
+        gap: 2px !important;
+        justify-content: center !important;
     }
+
     .miniatura {
-        width: 60px;
-        height: 60px;
-        object-fit: cover;
-        object-position: center;
-        cursor: pointer;
-        border: none;
-        background: transparent;
-        padding: 0;
-        margin: 0;
-        flex-shrink: 0 !important;
+        width: calc(25% - 2px) !important;
+        max-width: 70px !important;
+        height: auto !important;
+        aspect-ratio: 1 / 1;
+        object-fit: cover !important;
+        cursor: pointer !important;
+        border: none !important;
+        background: transparent !important;
     }
     .miniatura:hover {
     border: none;
     transform: none;
     opacity: 0.8;
-}
+    }
     .galeria-nav {
         display: flex;
         justify-content: center;
