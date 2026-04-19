@@ -48,6 +48,17 @@ def cargar_admin_password():
 # Al inicio del archivo, después de definir ADMIN_USER
 ADMIN_PASS = cargar_admin_password()
 print(f"🔐 ADMIN_PASS final: {ADMIN_PASS}")
+
+def guardar_admin_password(nueva_password):
+    """Guarda la nueva contraseña del administrador en Supabase"""
+    try:
+        print(f"🔐 Intentando guardar: {nueva_password}")
+        supabase.table("configuracion").update({"valor": nueva_password}).eq("clave", "admin_password").execute()
+        print(f"✅ Contraseña guardada correctamente")
+        return True
+    except Exception as e:
+        print(f"❌ Error guardando: {e}")
+        return False
 # ========== MODELO DE USUARIO ==========
 class User(UserMixin):
     def __init__(self, user_data):
