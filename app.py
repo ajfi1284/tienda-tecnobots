@@ -31,26 +31,23 @@ def cargar_admin_password():
     """Carga la contraseña del administrador desde Supabase"""
     try:
         response = supabase.table("configuracion").select("valor").eq("clave", "admin_password").execute()
-        if response.data:
-            return response.data[0]['valor']
+        print(f"🔍 cargar_admin_password - Respuesta: {response.data}")
+        
+        if response.data and len(response.data) > 0:
+            password = response.data[0]['valor']
+            print(f"✅ Contraseña cargada: {password}")
+            return password
         else:
-            # Si no existe, crear con valor por defecto
-            supabase.table("configuracion").insert({"clave": "admin_password", "valor": "TECNO2024"}).execute()
-            return "TECNO2024"
-    except:
-        return "TECNO2024"
+            print("⚠️ No se encontró admin_password, creando...")
+            supabase.table("configuracion").insert({"clave": "admin_password", "valor": "TECNO2026"}).execute()
+            return "TECNO2026"
+    except Exception as e:
+        print(f"❌ Error en cargar_admin_password: {e}")
+        return "TECNO2026"
 
-def guardar_admin_password(nueva_password):
-    """Guarda la nueva contraseña del administrador en Supabase"""
-    try:
-        supabase.table("configuracion").update({"valor": nueva_password}).eq("clave", "admin_password").execute()
-        return True
-    except:
-        return False
-
-ADMIN_USER = "TECNOBOTS"
+# Al inicio del archivo, después de definir ADMIN_USER
 ADMIN_PASS = cargar_admin_password()
-print(f"🔐 ADMIN_PASS cargada: {ADMIN_PASS}")
+print(f"🔐 ADMIN_PASS final: {ADMIN_PASS}")
 # ========== MODELO DE USUARIO ==========
 class User(UserMixin):
     def __init__(self, user_data):
