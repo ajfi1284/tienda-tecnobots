@@ -333,6 +333,33 @@ def add_to_cart():
     session['cart'] = cart
     return redirect(url_for('index'))
 
+@app.route('/add_to_cart_variante', methods=['POST'])
+def add_to_cart_variante():
+    variante_id = request.form.get('variante_id')
+    product_name = request.form.get('product_name')
+    product_price = float(request.form.get('product_price'))
+    cantidad = int(request.form.get('cantidad', 1))
+    color = request.form.get('color', '')
+    
+    if 'cart' not in session:
+        session['cart'] = {}
+    
+    cart = session['cart']
+    key = f"{variante_id}_{color}"
+    
+    if key in cart:
+        cart[key]['quantity'] += cantidad
+    else:
+        cart[key] = {
+            'name': f"{product_name} ({color})",
+            'price': product_price,
+            'quantity': cantidad,
+            'variante_id': variante_id,
+            'color': color
+        }
+    session['cart'] = cart
+    return redirect(url_for('index'))
+
 @app.route('/remove_from_cart', methods=['POST'])
 def remove_from_cart():
     product_id = request.form.get('product_id')
