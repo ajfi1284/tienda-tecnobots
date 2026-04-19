@@ -123,27 +123,22 @@
     .product-image {
         text-align: center;
     }
-    .miniaturas {
-        display: flex;
-        gap: 2px;
-        justify-content: center;
-        margin-bottom: 10px;
-        flex-wrap: wrap;
-    }
-
     .miniatura {
         width: 60px;
         height: 60px;
         object-fit: cover;
         object-position: center;
-        border-radius: 4px;
         cursor: pointer;
-        border: 1px solid #ddd;
-        transition: 0.2s;
+        border: none;
+        background: transparent;
+        padding: 0;
+        margin: 0;
     }
+
     .miniatura:hover {
-        border-color: #1f4e6e;
-        transform: scale(1.05);
+        border: none;
+        transform: none;
+        opacity: 0.8;
     }
     .galeria-nav {
         display: flex;
