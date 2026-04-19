@@ -50,7 +50,7 @@ def guardar_admin_password(nueva_password):
 
 ADMIN_USER = "TECNOBOTS"
 ADMIN_PASS = cargar_admin_password()
-
+print(f"🔐 ADMIN_PASS cargada: {ADMIN_PASS}")
 # ========== MODELO DE USUARIO ==========
 class User(UserMixin):
     def __init__(self, user_data):
