@@ -123,6 +123,14 @@
     .product-image {
         text-align: center;
     }
+    .miniaturas {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 5px !important;
+        justify-content: flex-start !important;
+        overflow-x: auto !important;
+    }
     .miniatura {
         width: 60px;
         height: 60px;
@@ -133,13 +141,13 @@
         background: transparent;
         padding: 0;
         margin: 0;
+        flex-shrink: 0 !important;
     }
-
     .miniatura:hover {
-        border: none;
-        transform: none;
-        opacity: 0.8;
-    }
+    border: none;
+    transform: none;
+    opacity: 0.8;
+}
     .galeria-nav {
         display: flex;
         justify-content: center;
