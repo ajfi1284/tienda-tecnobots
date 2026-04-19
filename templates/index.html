@@ -167,18 +167,21 @@
         gap: 5px;
         justify-content: center;
         margin-bottom: 10px;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        overflow-x: auto;
     }
-   .miniatura {
-    width: 70px;
-    height: 70px;
-    object-fit: contain;
-    border-radius: 8px;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: 0.2s;
-    background: transparent;
-}
+
+    .miniatura {
+        width: 70px;
+        height: 70px;
+        object-fit: contain;
+        border-radius: 8px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: 0.2s;
+        background: #f0f0f0;
+        flex-shrink: 0;
+    }
     .miniatura:hover {
         border-color: #1f4e6e;
         transform: scale(1.05);
