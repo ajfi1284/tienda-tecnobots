@@ -366,8 +366,14 @@ def remove_from_cart():
     
     if 'cart' in session and product_id in session['cart']:
         del session['cart'][product_id]
-        session.modified = True
+    else:
+        # Buscar por key que contenga el product_id
+        for key in list(session['cart'].keys()):
+            if key.startswith(product_id) or key == product_id:
+                del session['cart'][key]
+                break
     
+    session.modified = True
     return redirect(url_for('cart'))
 
 @app.route('/update_cart', methods=['POST'])
