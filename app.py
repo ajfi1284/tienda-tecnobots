@@ -290,7 +290,7 @@ def eliminar_venta_historial(venta_id):
 # ========== RUTAS PÚBLICAS ==========
 @app.route('/')
 def index():
-    response = supabase.table("productos").select("*").execute()
+    response = supabase.table("productos").select("*").order("nombre").execute()
     productos = response.data if response.data else []
     
     for p in productos:
