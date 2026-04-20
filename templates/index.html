@@ -4,12 +4,6 @@
 <h2>Nuestros Productos</h2>
 <div class="products-grid" id="products-grid">
     {% for producto in productos %}
-    
-    <!-- Saltar los productos individuales de Alexa (azul, blanco, negro) -->
-    {% if producto.nombre == 'Alexa echo dot azul' or producto.nombre == 'Alexa echo dot blanco' or producto.nombre == 'Alexa echo dot negra' %}
-        <!-- No mostrar, ya tenemos la ficha unificada -->
-    {% else %}
-    
     <div class="product-card {% if producto.cantidad == 0 %}out-of-stock{% endif %}" data-producto-id="{{ producto.id }}" onclick="openProductModal({{ producto.id }})">
         <div class="product-image" onclick="event.stopPropagation()">
             {% set imagenes = producto.imagenes if producto.imagenes else [] %}
@@ -44,40 +38,7 @@
             </form>
         {% endif %}
     </div>
-    {% endif %}
     {% endfor %}
-    
-    <!-- Ficha unificada de Alexa Echo Dot con selector de colores -->
-    <div class="product-card" data-producto-id="alexa" onclick="event.stopPropagation()">
-        <div class="product-image" onclick="event.stopPropagation()">
-            <img src="{{ url_for('static', filename='images/placeholder.png') }}" alt="Alexa Echo Dot" style="width:100%; max-height:150px; object-fit:contain;">
-        </div>
-        <h3>Alexa Echo Dot</h3>
-        <p class="price">$55.00</p>
-        <div class="color-selector" onclick="event.stopPropagation()">
-            <label>Color:</label>
-            <select id="colorSelect" class="color-select" onchange="actualizarStock()">
-                <option value="45" data-stock="1">Azul (Stock: 1)</option>
-                <option value="81" data-stock="1">Blanco (Stock: 1)</option>
-                <option value="77" data-stock="2">Negro (Stock: 2)</option>
-            </select>
-        </div>
-        <div class="cantidad-selector" onclick="event.stopPropagation()">
-            <button type="button" class="btn-cantidad menos" id="alexa-cantidad-menos">-</button>
-            <span class="cantidad-valor" id="alexa-cantidad">1</span>
-            <button type="button" class="btn-cantidad mas" id="alexa-cantidad-mas">+</button>
-        </div>
-        <form method="POST" action="{{ url_for('add_to_cart_variante') }}" class="add-to-cart-form" onclick="event.stopPropagation()">
-            <input type="hidden" name="producto_id" id="alexa_producto_id" value="45">
-            <input type="hidden" name="variante_id" id="alexa_variante_id" value="45">
-            <input type="hidden" name="product_name" value="Alexa Echo Dot">
-            <input type="hidden" name="product_price" value="55.00">
-            <input type="hidden" name="cantidad" id="alexa_cantidad_input" value="1">
-            <input type="hidden" name="color" id="alexa_color" value="Azul">
-            <button type="submit" class="btn-add">Agregar al carrito</button>
-        </form>
-        <p class="stock" id="alexa-stock">Stock: 1</p>
-    </div>
 </div>
 
 <!-- Modal para zoom de imágenes -->
@@ -203,19 +164,6 @@
     .stock-zero {
         color: red;
         font-weight: bold;
-    }
-    .color-selector {
-        margin: 10px 0;
-    }
-    .color-selector label {
-        font-weight: 600;
-        margin-right: 5px;
-    }
-    .color-select {
-        padding: 5px 10px;
-        border-radius: 20px;
-        border: 1px solid #ddd;
-        background: white;
     }
     .cantidad-selector {
         display: flex;
@@ -500,19 +448,6 @@
     var currentImagesList = [];
     var currentZoom = 1;
     var modalCantidad = 1;
-    var alexaCantidad = 1;
-    
-    function actualizarStock() {
-        var select = document.getElementById('colorSelect');
-        var selectedOption = select.options[select.selectedIndex];
-        var stock = selectedOption.getAttribute('data-stock');
-        var varianteId = selectedOption.value;
-        var color = selectedOption.text.split(' ')[0];
-        document.getElementById('alexa-stock').innerHTML = 'Stock: ' + stock;
-        document.getElementById('alexa_producto_id').value = varianteId;
-        document.getElementById('alexa_variante_id').value = varianteId;
-        document.getElementById('alexa_color').value = color;
-    }
     
     function cambiarCantidad(btn, delta, productId) {
         var valorSpan = document.getElementById('cantidad-valor-' + productId);
@@ -523,22 +458,6 @@
             inputHidden.value = nuevoValor;
         }
     }
-    
-    document.getElementById('alexa-cantidad-menos').addEventListener('click', function() {
-        if (alexaCantidad > 1) {
-            alexaCantidad--;
-            document.getElementById('alexa-cantidad').innerText = alexaCantidad;
-            document.getElementById('alexa_cantidad_input').value = alexaCantidad;
-        }
-    });
-    
-    document.getElementById('alexa-cantidad-mas').addEventListener('click', function() {
-        if (alexaCantidad < 5) {
-            alexaCantidad++;
-            document.getElementById('alexa-cantidad').innerText = alexaCantidad;
-            document.getElementById('alexa_cantidad_input').value = alexaCantidad;
-        }
-    });
     
     function openImageModal(productId, index) {
         currentProductId = productId;
@@ -668,7 +587,15 @@
     document.querySelector('.close-product').addEventListener('click', function() {
         document.getElementById('productModal').style.display = 'none';
     });
-    
-    actualizarStock();
+    document.querySelectorAll('.product-card').forEach(card => {
+        let productId = card.getAttribute('data-producto-id');
+        let imagenes = window.imagenesData[productId];
+        if (imagenes && imagenes.length > 0) {
+            let primeraMiniatura = card.querySelector('.miniatura');
+            if (primeraMiniatura) {
+                primeraMiniatura.style.borderColor = '#1f4e6e';
+            }
+        }
+    });
 </script>
 {% endblock %}
