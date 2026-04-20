@@ -111,6 +111,10 @@
     <div class="perfil-actions">
         <a href="{{ url_for('logout') }}" class="btn-logout">🚪 Cerrar sesión</a>
     </div>
+    
+    <div class="seguir-comprando">
+        <a href="{{ url_for('index') }}" class="btn-seguir">🛍️ Seguir comprando</a>
+    </div>
 </div>
 
 <style>
@@ -252,6 +256,22 @@
     .perfil-actions {
         text-align: center;
         margin-top: 20px;
+    }
+    .seguir-comprando {
+        text-align: center;
+        margin-top: 20px;
+    }
+    .btn-seguir {
+        display: inline-block;
+        background: #28a745;
+        color: white;
+        padding: 10px 25px;
+        border-radius: 30px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .btn-seguir:hover {
+        background: #218838;
     }
 </style>
 {% endblock %}
