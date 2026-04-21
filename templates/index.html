@@ -14,7 +14,7 @@
                     {% endfor %}
                 </div>
             {% else %}
-                <img src="{{ url_for('static', filename='images/placeholder.png') }}" alt="Sin imagen" style="width:100%; max-height:150px; object-fit:contain;">
+                <img src="{{ url_for('static', filename='images/placeholder.png') }}" alt="Sin imagen" style="width:100%; max-height:70px; object-fit:contain;">
             {% endif %}
         </div>
         <h3 class="producto-nombre" data-id="{{ producto.id }}">{{ producto.nombre }}</h3>
